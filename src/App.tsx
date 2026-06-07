@@ -8,9 +8,10 @@ import { UserAccount, CourierProfile, Order, ChatMessage, VehicleType, OrderType
 import { PRESET_LOCATIONS } from './data';
 import AuthScreen from './components/AuthScreen';
 import CustomerPanel from './components/CustomerPanel';
+import CusFoodPage from './components/CusFoodPage';
 import CourierPanel from './components/CourierPanel';
 import BrandLogo from './components/BrandLogo';
-import { LogOut, RefreshCw, User, ToggleLeft, ShieldCheck, Compass, HelpCircle, Sparkles, Navigation } from 'lucide-react';
+import { LogOut, RefreshCw, User, ToggleLeft, ShieldCheck, Compass, HelpCircle, Sparkles, Navigation, Utensils } from 'lucide-react';
 
 export default function App() {
   // 1. Unified Authentication State (linked with localStorage)
@@ -24,10 +25,10 @@ export default function App() {
     return saved ? JSON.parse(saved) : null;
   });
 
-  // Controls whether we are currently viewing the Customer Portal or Courier Hub
-  const [activeView, setActiveView] = useState<'customer' | 'courier'>(() => {
+  // Controls whether we are currently viewing the Customer Portal, CusFood, or Courier Hub
+  const [activeView, setActiveView] = useState<'customer' | 'cusfood' | 'courier'>(() => {
     const saved = localStorage.getItem('cusantar_active_view');
-    return (saved as 'customer' | 'courier') || 'customer';
+    return (saved as 'customer' | 'cusfood' | 'courier') || 'customer';
   });
 
   // 2. Global Orders Database
@@ -94,7 +95,7 @@ export default function App() {
 
   // 3. Automated Courier AI simulation dispatch loops (Runs when user is Client and AUTO is enabled)
   useEffect(() => {
-    if (activeView !== 'customer' || !enableAutoCourier) return;
+    if ((activeView !== 'customer' && activeView !== 'cusfood') || !enableAutoCourier) return;
 
     // Look for pending orders placed by this customer that don't have driver assigned
     const pendingOrders = orders.filter(o => o.status === 'pending');
@@ -126,7 +127,7 @@ export default function App() {
       });
 
       // Post first courier introduction message
-      postChatMessage(order.id, 'courier', `Hi ${order.customerName}! My name is Satria, I am your assigned CusAntar delivery driver for today. I am heading towards your location now.`);
+      postChatMessage(order.id, 'courier', `Halo ${order.customerName}! Nama saya Satria, saya adalah kurir CusAntar yang ditugaskan untuk pesanan Anda. Saya sedang menuju ke lokasi Anda sekarang ya.`);
     }, 4000);
 
     return () => clearTimeout(timer);
@@ -134,7 +135,7 @@ export default function App() {
 
   // Secondary simulation transitions for assigned AI couriers
   useEffect(() => {
-    if (activeView !== 'customer' || !enableAutoCourier) return;
+    if ((activeView !== 'customer' && activeView !== 'cusfood') || !enableAutoCourier) return;
 
     const aiOrders = orders.filter(
       o => o.courierId === 'cour-preset-1' && !['completed', 'cancelled'].includes(o.status)
@@ -147,21 +148,21 @@ export default function App() {
       const stageMessageMap: { [key: string]: { nextStatus: string, msg: string } } = {
         'accepted': {
           nextStatus: 'picking_up',
-          msg: "Assigned at pickup gate! Just pulling up next to the main building now. Meet me there!"
+          msg: "Saya sudah sampai di gerbang penjemputan/restoran ya! Saya menunggu dekat lobi utama."
         },
         'picking_up': {
           nextStatus: 'in_transit',
           msg: currentOrder.type === 'passenger'
-            ? "Passenger on board! Fastening seatbelts and establishing smart route. Let's go!"
-            : "Cargo loaded securely on deck! Heading towards destination address."
+            ? "Penumpang sudah naik ke dalam kendaraan! Kami siap berangkat menyusuri rute terbaik."
+            : "Barang sudah termuat dengan aman dan kokoh! Sekarang saatnya meluncur ke alamat tujuan Anda."
         },
         'in_transit': {
           nextStatus: 'arrived',
-          msg: "Arrived safely at designated drop-off address! Coming near the lobby checkpoint."
+          msg: "Saya telah sampai dengan selamat di lokasi pengantaran Anda! Saya berada di dekat pos checkpoint lobi."
         },
         'arrived': {
           nextStatus: 'completed',
-          msg: "Delivered completed safety! Hope you have a wonderful day! Please rate me in the dashboard profile."
+          msg: "Pesanan telah sukses diserahkan! Semoga Anda sehat selalu. Silakan berikan ulasan bintang 5 di dashboard ya!"
         }
       };
 
@@ -234,10 +235,10 @@ export default function App() {
 
     // Dynamic messaging base on changes
     const systemMessages: { [key: string]: string } = {
-      'picking_up': "Hello! I am arriving near your pick-up spot, standing by for cargo hand-off.",
-      'in_transit': "Cargo/Passenger secure on deck. Transit path calculated. Heading out now!",
-      'arrived': "I have arrived at the destination! Please check your entryway for package drop-off.",
-      'completed': "Delivered! Financial payout completed. Thank you for selecting CusAntar!"
+      'picking_up': "Halo! Saya sudah sampai di sekitar titik penjemputan/restoran Anda ya, saya siap menerima muatan.",
+      'in_transit': "Barang/Penumpang telah aman bersama saya. Rute pengantaran pintar telah diatur. Berangkat sekarang!",
+      'arrived': "Saya telah tiba di lokasi tujuan pengantaran Anda! Mohon periksa lobi atau pintu depan ya.",
+      'completed': "Pesanan sukses diserahkan! Transaksi pembayaran diselesaikan dengan aman. Terima kasih telah menggunakan CusAntar!"
     };
 
     if (systemMessages[newStatus]) {
@@ -395,7 +396,7 @@ export default function App() {
             <BrandLogo size="sm" />
             <div className="h-4 w-px bg-slate-800 hidden md:block" />
             <span className="text-[10px] uppercase font-mono tracking-wider font-bold text-slate-400 hidden md:block">
-              Premium Logistical Solution
+              Solusi Logistik Premium
             </span>
           </div>
 
@@ -409,7 +410,19 @@ export default function App() {
                   : 'text-slate-400 hover:text-white'
               }`}
             >
-              <Navigation className="w-4 h-4" /> Customer Portal
+              <Navigation className="w-4 h-4" /> Portal Pelanggan
+            </button>
+
+            <button
+              onClick={() => setActiveView('cusfood')}
+              className={`px-4 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
+                activeView === 'cusfood'
+                  ? 'bg-red-650 text-white font-black shadow-md'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+              style={{ backgroundColor: activeView === 'cusfood' ? '#dc2626' : undefined }}
+            >
+              <Utensils className="w-4 h-4" /> CusFood (Pesan Kuliner)
             </button>
 
             <button
@@ -439,16 +452,16 @@ export default function App() {
                   : 'text-slate-400 hover:text-white'
               }`}
             >
-              <ShieldCheck className="w-4 h-4" /> Courier Hub
+              <ShieldCheck className="w-4 h-4" /> Pusat Kurir & Driver
             </button>
           </div>
 
           {/* User profile actions & logout */}
           <div className="flex items-center gap-4">
             {/* Auto dispatcher trigger for customer viewing */}
-            {activeView === 'customer' && (
+            {(activeView === 'customer' || activeView === 'cusfood') && (
               <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-xl text-[10px]">
-                <span className="text-slate-400 font-mono font-bold uppercase tracking-wider">AI Courier Autopilot:</span>
+                <span className="text-slate-400 font-mono font-bold uppercase tracking-wider">Autopilot Kurir AI:</span>
                 <button
                   type="button"
                   onClick={() => setEnableAutoCourier(!enableAutoCourier)}
@@ -456,18 +469,18 @@ export default function App() {
                     enableAutoCourier ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-slate-400'
                   }`}
                 >
-                  {enableAutoCourier ? 'Enabled' : 'Disabled'}
+                  {enableAutoCourier ? 'Aktif' : 'Nonaktif'}
                 </button>
               </div>
             )}
 
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-full overflow-hidden border border-slate-750">
+              <div className="w-8 h-8 rounded-full overflow-hidden border border-slate-755">
                 <img src={currentUser.avatar} alt="Profile Avatar" className="w-full h-full object-cover" />
               </div>
               <div className="hidden sm:block text-left text-xs">
                 <span className="font-bold text-slate-100 block">{currentUser.name}</span>
-                <span className="text-[10px] text-slate-450 block font-semibold">{currentUser.role === 'customer' ? 'Customer' : 'Professional Courier'}</span>
+                <span className="text-[10px] text-slate-450 block font-semibold">{currentUser.role === 'customer' ? 'Pelanggan' : 'Kurir Profesional'}</span>
               </div>
             </div>
 
@@ -477,7 +490,7 @@ export default function App() {
               title="Logout Account"
             >
               <LogOut className="w-4 h-4" />
-              <span className="hidden md:inline">Log Out</span>
+              <span className="hidden md:inline">Keluar</span>
             </button>
           </div>
 
@@ -490,14 +503,14 @@ export default function App() {
           <p className="font-medium text-center md:text-left flex items-center gap-1">
             <Sparkles className="w-4.5 h-4.5 text-amber-500 fill-current" />
             <span>
-              <strong>CusAntar Brand Simulation Workspace:</strong> Switch between the Customer Portal and Courier Hub at the top anytime to simulate order match loops.
+              <strong>Ruang Kerja Simulasi CusAntar:</strong> Beralihlah antara Portal Pelanggan dan Pusat Kurir di bagian atas kapan saja untuk menyimulasikan siklus pencocokan pesanan.
             </span>
           </p>
-          {activeView === 'customer' && (
+          {(activeView === 'customer' || activeView === 'cusfood') && (
             <span className="text-[11px] text-amber-800">
               {enableAutoCourier
-                ? '🤖 Driver Autopilot ON (AI Satria will automatically accept/advance your orders)'
-                : '🚘 Manual Mode ON (You must dispatch courier from Courier Hub manually)'}
+                ? '🤖 Autopilot Pengemudi AKTIF (Kurir AI Satria akan otomatis menerima & memproses pesanan)'
+                : '🚘 Mode Manual AKTIF (Anda harus menjalankan tugas kurir secara manual dari Pusat Kurir)'}
             </span>
           )}
         </div>
@@ -507,6 +520,16 @@ export default function App() {
       <main className="flex-grow py-4">
         {activeView === 'customer' ? (
           <CustomerPanel
+            user={currentUser}
+            activeOrders={orders}
+            onPlaceOrder={handlePlaceOrder}
+            onCancelOrder={handleCancelOrder}
+            onTopUpWallet={handleTopUpWallet}
+            onSendMessage={(orderId, text) => postChatMessage(orderId, 'customer', text)}
+            onRateCourier={handleRateCourier}
+          />
+        ) : activeView === 'cusfood' ? (
+          <CusFoodPage
             user={currentUser}
             activeOrders={orders}
             onPlaceOrder={handlePlaceOrder}
@@ -542,9 +565,9 @@ export default function App() {
       {/* BRAND FOOTER ACCENT */}
       <footer className="bg-slate-900 border-t border-slate-800 py-6 text-center text-xs text-slate-500">
         <div className="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="font-mono">© 2026 CusAntar Delivery Transport Network. All Rights Reserved.</p>
+          <p className="font-mono">© 2026 Jaringan Transportasi Pengiriman CusAntar. Hak Cipta Dilindungi Undang-Undang.</p>
           <div className="flex gap-4">
-            <a href="#city-map" className="hover:text-amber-500 font-semibold transition-all">Interactive Radar Map</a>
+            <a href="#city-map" className="hover:text-amber-500 font-semibold transition-all">Peta Radar Interaktif</a>
             <span>•</span>
             <span className="text-slate-400 font-mono font-bold">UTC: 2026-06-07 06:16Z</span>
           </div>

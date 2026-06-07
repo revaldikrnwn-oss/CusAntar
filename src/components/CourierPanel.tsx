@@ -100,7 +100,7 @@ export default function CourierPanel({
               <div className="flex items-center gap-2 mt-1">
                 <span className={`w-2.5 h-2.5 rounded-full ${courier.isOnline ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500'}`} />
                 <span className="text-xs text-teal-200 uppercase font-bold tracking-wider font-mono">
-                  {courier.isOnline ? 'Active Dispatcher' : 'Offline / Idle'}
+                  {courier.isOnline ? 'Kurir Aktif (Online)' : 'Offline / Istirahat'}
                 </span>
               </div>
             </div>
@@ -109,14 +109,14 @@ export default function CourierPanel({
           {/* Core Driver Key Statistics */}
           <div className="grid grid-cols-2 gap-3 mt-6">
             <div className="bg-teal-900/60 rounded-2xl p-3 border border-teal-800/40">
-              <span className="text-[9px] uppercase font-mono text-teal-300 font-bold tracking-wide">Total Earnings</span>
+              <span className="text-[9px] uppercase font-mono text-teal-300 font-bold tracking-wide">Total Pendapatan</span>
               <span className="text-sm font-black font-sans block text-yellow-400 mt-1">
                 IDR {courier.earnings.toLocaleString()}
               </span>
             </div>
 
             <div className="bg-teal-900/60 rounded-2xl p-3 border border-teal-800/40">
-              <span className="text-[9px] uppercase font-mono text-teal-300 font-bold tracking-wide">Courier Rating</span>
+              <span className="text-[9px] uppercase font-mono text-teal-300 font-bold tracking-wide">Rating Pelayanan</span>
               <span className="text-sm font-black font-sans flex items-center gap-1 text-teal-200 mt-1">
                 <Star className="w-4 h-4 text-yellow-400 fill-current" /> {courier.rating.toFixed(1)}
               </span>
@@ -124,7 +124,7 @@ export default function CourierPanel({
           </div>
 
           <div className="mt-5 pt-4 border-t border-teal-900 flex justify-between items-center gap-4">
-            <span className="text-xs font-semibold text-teal-100">Toggle Dispatch State</span>
+            <span className="text-xs font-semibold text-teal-100">Status Keaktifan GPS</span>
             <button
               onClick={() => onUpdateProfile({ isOnline: !courier.isOnline })}
               className={`px-4 py-2 text-xs font-black rounded-xl transition-all shadow-md cursor-pointer flex items-center gap-1.5 ${
@@ -143,7 +143,7 @@ export default function CourierPanel({
         <div className="bg-white rounded-3xl border border-slate-100 shadow-md p-6">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-xs font-bold font-mono text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-              <Car className="w-4 h-4 text-teal-700" /> Active Fleet Profile
+              <Car className="w-4 h-4 text-teal-700" /> Profil Armada Aktif
             </h3>
             {!editVehicle && (
               <button
@@ -151,7 +151,7 @@ export default function CourierPanel({
                 onClick={() => setEditVehicle(true)}
                 className="text-teal-700 hover:text-teal-900 text-xs font-bold underline cursor-pointer"
               >
-                Change Profile
+                Ubah Profil
               </button>
             )}
           </div>
@@ -160,43 +160,45 @@ export default function CourierPanel({
             <div className="space-y-4">
               <div className="flex justify-between p-3.5 bg-slate-50 border border-slate-100 rounded-2xl items-center text-xs">
                 <div>
-                  <span className="text-[9px] uppercase tracking-wider text-slate-400 font-bold block">Vehicle Tier</span>
-                  <span className="font-bold text-slate-900 uppercase">{courier.vehicleType}</span>
+                  <span className="text-[9px] uppercase tracking-wider text-slate-400 font-bold block">Tipe Armada</span>
+                  <span className="font-bold text-slate-900 uppercase">
+                    {courier.vehicleType === 'scooter' ? 'Motor' : courier.vehicleType === 'bike' ? 'Sepeda' : 'Mobil'}
+                  </span>
                 </div>
                 <div>
                   <span className="text-[9px] uppercase tracking-wider text-slate-400 font-bold block">Model</span>
                   <span className="font-medium text-slate-700">{courier.vehicleModel}</span>
                 </div>
                 <div>
-                  <span className="text-[9px] uppercase tracking-wider text-slate-400 font-bold block">Reg Plate</span>
+                  <span className="text-[9px] uppercase tracking-wider text-slate-400 font-bold block">No. Plat Polisi</span>
                   <span className="font-mono font-bold text-teal-800 bg-teal-100/50 px-2.5 py-0.5 rounded-md">
                     {courier.vehiclePlate}
                   </span>
                 </div>
               </div>
 
-              <div className="p-3.5 bg-teal-50/50 rounded-2xl text-[11px] text-teal-850 border border-teal-100 leading-relaxed">
-                Registered couriers keep 90% commission of every completed parcel or passenger transit fare! Change plates or vehicle tiers anytime prior to accepting bookings.
+              <div className="p-3.5 bg-teal-50/50 rounded-2xl text-[11px] text-teal-850 border border-teal-100 leading-relaxed font-semibold">
+                Mitra kurir terdaftar berhak mendapatkan komisi bersih 90% dari setiap biaya pengiriman barang atau perjalanan penumpang! Anda dapat mengubah plat nomor dan kategori kendaraan kapan saja sebelum menerima pesanan baru.
               </div>
             </div>
           ) : (
             <form onSubmit={handleProfileSave} className="space-y-3.5">
               <div>
-                <label className="text-[10px] font-bold text-slate-600 block mb-1">Fleet Tier</label>
+                <label className="text-[10px] font-bold text-slate-600 block mb-1">Kategori Armada</label>
                 <select
                   value={vType}
                   onChange={(e) => setVType(e.target.value as VehicleType)}
                   className="w-full text-xs font-medium border border-slate-200 px-3 py-2 bg-white rounded-xl focus:ring-1 focus:ring-teal-700 focus:outline-none"
                 >
-                  <option value="scooter">CusAntar Scooter (Eco)</option>
-                  <option value="bike">CusAntar Bicycle (Courier-Mesh)</option>
-                  <option value="car">CusAntar Car (CusRide Sedan)</option>
+                  <option value="scooter">CusAntar Motor (Ekonomis)</option>
+                  <option value="bike">CusAntar Sepeda (Kurir Ramah Lingkungan)</option>
+                  <option value="car">CusAntar Mobil (CusRide Kabin AC)</option>
                 </select>
               </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="text-[10px] font-bold text-slate-600 block mb-1">Model Description</label>
+                  <label className="text-[10px] font-bold text-slate-600 block mb-1">Model & Nama Kendaraan</label>
                   <input
                     type="text"
                     value={vModel}
@@ -205,12 +207,12 @@ export default function CourierPanel({
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold text-slate-600 block mb-1">Plate Registration</label>
+                  <label className="text-[10px] font-bold text-slate-600 block mb-1">Nomor Plat Registrasi</label>
                   <input
                     type="text"
                     value={vPlate}
                     onChange={(e) => setVPlate(e.target.value)}
-                    className="w-full text-xs font-medium border border-slate-200 px-3 py-2 rounded-xl focus:ring-1 focus:ring-teal-700 focus:outline-none"
+                    className="w-full text-xs font-medium border border-slate-200 px-3 py-2 rounded-xl focus:ring-1 focus:ring-teal-700 focus:outline-none font-mono uppercase"
                   />
                 </div>
               </div>
@@ -220,14 +222,14 @@ export default function CourierPanel({
                   type="submit"
                   className="w-full py-2 bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold rounded-xl cursor-pointer"
                 >
-                  Save Active Changes
+                  Simpan Perubahan Profil
                 </button>
                 <button
                   type="button"
                   onClick={() => setEditVehicle(false)}
                   className="px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium rounded-xl cursor-pointer"
                 >
-                  Cancel
+                  Batal
                 </button>
               </div>
             </form>
@@ -238,16 +240,16 @@ export default function CourierPanel({
         <div className="bg-amber-50/40 rounded-3xl border border-dashed border-amber-300 p-5 space-y-3.5">
           <div className="flex items-center gap-1.5">
             <Database className="w-5 h-5 text-amber-600" />
-            <h3 className="font-bold text-xs text-amber-900 uppercase tracking-wide">Developer Sandbox Tools</h3>
+            <h3 className="font-bold text-xs text-amber-900 uppercase tracking-wide">Alat Sandbox Simulasi</h3>
           </div>
-          <p className="text-[11px] text-amber-850 leading-relaxed font-sans">
-            Need to test the Courier dashboard instantly? Click below to inject a simulated on-demand order (goods, food, or passenger journey) directly onto the grid.
+          <p className="text-[11px] text-amber-850 leading-relaxed font-sans font-semibold">
+            Ingin menguji dashboard Kurir secara instan? Klik tombol dibawah untuk membuat simulasi pesanan baru otomatis (pengiriman barang, pesanan kuliner, atau tumpangan taksi) langsung di sistem.
           </p>
           <button
             onClick={onGenerateSimulatedJob}
             className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-xl text-xs shadow-md transition-all cursor-pointer flex items-center justify-center gap-1.5"
           >
-            <Sparkles className="w-4 h-4 text-slate-950 animate-bounce" /> Generate Synthetic Customer Request
+            <Sparkles className="w-4 h-4 text-slate-950 animate-bounce" /> Buat Simulasi Pesanan Baru
           </button>
         </div>
       </div>
@@ -262,11 +264,11 @@ export default function CourierPanel({
 
         {/* SCENARIO A: COURIER IS OFFLINE */}
         {!courier.isOnline && (
-          <div className="bg-slate-50 border border-slate-200 rounded-3xl p-8 text-center">
+          <div className="bg-slate-50 border border-slate-200 rounded-3xl p-8 text-center font-semibold">
             <AlertOctagon className="w-12 h-12 text-slate-400 mx-auto mb-3" />
-            <h3 className="text-sm font-bold text-slate-800">You Are Offline</h3>
+            <h3 className="text-sm font-bold text-slate-800">Anda Sedang Offline</h3>
             <p className="text-xs text-slate-500 max-w-sm mx-auto mt-1.5">
-              Turn on your GPS "Go Online" slider in the profile card on the left panel to begin scanning for customer delivery requests!
+              Aktifkan tombol "Go Online" di kartu profil sebelah kiri untuk mulai menerima dan memindai pesanan dari pelanggan terdekat!
             </p>
           </div>
         )}
@@ -277,16 +279,16 @@ export default function CourierPanel({
             {/* Header notification bar of status */}
             <div className="bg-teal-700 text-white p-5 flex justify-between items-center">
               <div>
-                <span className="text-[9px] uppercase font-mono bg-white/20 px-2 py-0.5 rounded-full tracking-wider font-bold">
-                  ACTIVE COMMITTED DISPATCH
+                <span className="text-[9px] uppercase font-mono bg-white/20 px-2.5 py-0.5 rounded-full tracking-wider font-bold">
+                  PENGIRIMAN AKTIF YANG DIAMBIL
                 </span>
                 <h3 className="text-base font-bold font-sans mt-1.5">
-                  Task ID: #{myActiveOrder.id.slice(0, 10).toUpperCase()}
+                  ID Tugas: #{myActiveOrder.id.slice(0, 10).toUpperCase()}
                 </h3>
               </div>
 
               <div className="text-right">
-                <span className="text-[10px] text-teal-200 font-mono block">YOUR COMMISSION TAKE</span>
+                <span className="text-[10px] text-teal-200 font-mono block">KOMISI BERSIH ANDA (90%)</span>
                 <span className="text-xl font-black text-yellow-400 font-mono">
                   IDR {Math.round(myActiveOrder.fare * 0.9).toLocaleString()}
                 </span>
@@ -296,30 +298,32 @@ export default function CourierPanel({
             <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Order Specific Info */}
               <div className="space-y-4">
-                <div className="p-4 bg-slate-50 rounded-2xl space-y-3 border border-slate-100 text-xs">
-                  <h4 className="font-bold text-slate-800 uppercase tracking-wider text-[10px] border-b border-slate-150 pb-1">
-                    Booking Specifications
+                <div className="p-4 bg-slate-50 rounded-2xl space-y-3 border border-slate-100 text-xs font-semibold text-slate-700">
+                  <h4 className="font-bold text-slate-800 uppercase tracking-wider text-[10px] border-b border-slate-150 pb-1 font-sans">
+                    Spesifikasi Pemesanan
                   </h4>
 
                   <div>
-                    <span className="font-bold block text-slate-400 uppercase text-[9px] font-mono">Service category</span>
-                    <span className="font-bold text-slate-900 capitalize text-xs mt-0.5 block">{myActiveOrder.type} Delivery</span>
+                    <span className="font-bold block text-slate-400 uppercase text-[9px] font-mono">Kategori Layanan</span>
+                    <span className="font-bold text-slate-900 capitalize text-xs mt-0.5 block">
+                      {myActiveOrder.type === 'goods' ? 'CusSend (Kirim Barang)' : myActiveOrder.type === 'food' ? 'CusFood (Pesan Kuliner)' : 'CusRide (Perjalanan Ojek/Mobil)'}
+                    </span>
                   </div>
 
                   <div>
-                    <span className="font-bold block text-slate-400 uppercase text-[9px] font-mono">Origin Location</span>
-                    <span className="font-semibold text-slate-800 block mt-0.5 leading-snug">{myActiveOrder.origin.address}</span>
+                    <span className="font-bold block text-slate-400 uppercase text-[9px] font-mono">Lokasi Penjemputan / Restoran</span>
+                    <span className="font-bold text-slate-800 block mt-0.5 leading-snug">{myActiveOrder.origin.address}</span>
                   </div>
 
                   <div>
-                    <span className="font-bold block text-slate-400 uppercase text-[9px] font-mono">Drop-off destination</span>
-                    <span className="font-semibold text-slate-800 block mt-0.5 leading-snug">{myActiveOrder.destination.address}</span>
+                    <span className="font-bold block text-slate-400 uppercase text-[9px] font-mono">Lokasi Pengantaran Tujuan</span>
+                    <span className="font-bold text-slate-800 block mt-0.5 leading-snug">{myActiveOrder.destination.address}</span>
                   </div>
 
                   {myActiveOrder.type === 'goods' && (
                     <div>
-                      <span className="font-bold block text-slate-400 uppercase text-[9px] font-mono">Cargo Weight / Item</span>
-                      <p className="font-medium text-slate-705 mt-0.5">
+                      <span className="font-bold block text-slate-400 uppercase text-[9px] font-mono">Berat Kargo / Nama Barang</span>
+                      <p className="font-bold text-slate-800 mt-0.5">
                         {myActiveOrder.details.goods?.parcelName} ({myActiveOrder.details.goods?.weight} kg)
                       </p>
                     </div>
@@ -327,15 +331,15 @@ export default function CourierPanel({
 
                   {myActiveOrder.type === 'food' && (
                     <div>
-                      <span className="font-bold block text-slate-400 uppercase text-[9px] font-mono">Merchant Kitchen</span>
+                      <span className="font-bold block text-slate-400 uppercase text-[9px] font-mono">Merchant Restoran Kuliner</span>
                       <p className="font-bold text-slate-900 mt-0.5">
                         {myActiveOrder.details.food?.restaurantName}
                       </p>
                       <div className="mt-1 space-y-0.5 pl-2 border-l-2 border-amber-500">
                         {myActiveOrder.details.food?.items.map((it, idx) => (
-                          <div key={idx} className="text-[10px] text-slate-600">
-                            {it.quantity}x {it.name}
-                          </div>
+                           <div key={idx} className="text-[10px] text-slate-600 font-bold">
+                             {it.quantity}x {it.name}
+                           </div>
                         ))}
                       </div>
                     </div>
@@ -343,58 +347,56 @@ export default function CourierPanel({
 
                   {myActiveOrder.type === 'passenger' && (
                     <div>
-                      <span className="font-bold block text-slate-400 uppercase text-[9px] font-mono">Rider count & Class</span>
-                      <p className="font-medium text-slate-705 mt-0.5">
-                        {myActiveOrder.details.passenger?.passengerCount} Passenger(s) • CusRide {myActiveOrder.details.passenger?.vehicleTier}
+                      <span className="font-bold block text-slate-400 uppercase text-[9px] font-mono">Jumlah Penumpang & Layanan</span>
+                      <p className="font-bold text-slate-800 mt-0.5">
+                        {myActiveOrder.details.passenger?.passengerCount} Penumpang • CusRide {myActiveOrder.details.passenger?.vehicleTier === 'premium' ? 'Mobil AC' : 'Motor Solo'}
                       </p>
                     </div>
                   )}
-                </div>
-
-                {/* ADVANCED STEP SIMULATOR CONTROLS */}
-                <div className="p-4 bg-teal-50/40 rounded-2xl border border-teal-100 space-y-3 text-xs">
-                  <h4 className="font-bold text-teal-900 uppercase tracking-wider text-[10px]">
-                    Step-by-Step Delivery Actions
+                </div>                {/* ADVANCED STEP SIMULATOR CONTROLS */}
+                <div className="p-4 bg-teal-50/40 rounded-2xl border border-teal-100 space-y-3 text-xs font-semibold">
+                  <h4 className="font-bold text-teal-900 uppercase tracking-wider text-[10px] font-sans">
+                    Tahapan Alur Pengiriman Pesanan
                   </h4>
 
                   {myActiveOrder.status === 'accepted' && (
                     <button
                       onClick={() => onUpdateStatus(myActiveOrder.id, 'picking_up')}
-                      className="w-full py-3 bg-teal-700 hover:bg-teal-800 text-white font-bold rounded-xl transition-all shadow-md cursor-pointer text-center"
+                      className="w-full py-3 bg-teal-750 hover:bg-teal-800 text-white font-bold rounded-xl transition-all shadow-md cursor-pointer text-center"
                     >
-                      Step 1: Arrive at pick-up location
+                      Langkah 1: Sampai di Lokasi Penjemputan / Restoran
                     </button>
                   )}
 
                   {myActiveOrder.status === 'picking_up' && (
                     <button
                       onClick={() => onUpdateStatus(myActiveOrder.id, 'in_transit')}
-                      className="w-full py-3 bg-teal-700 hover:bg-teal-800 text-white font-bold rounded-xl transition-all shadow-md cursor-pointer text-center"
+                      className="w-full py-3 bg-teal-750 hover:bg-teal-800 text-white font-bold rounded-xl transition-all shadow-md cursor-pointer text-center"
                     >
-                      Step 2: Cargo On-board / Commencing Transit
+                      Langkah 2: Ambil Pesanan & Mulai Perjalanan Antar
                     </button>
                   )}
 
                   {myActiveOrder.status === 'in_transit' && (
                     <button
                       onClick={() => onUpdateStatus(myActiveOrder.id, 'arrived')}
-                      className="w-full py-3 bg-teal-700 hover:bg-teal-800 text-white font-bold rounded-xl transition-all shadow-md cursor-pointer text-center"
+                      className="w-full py-3 bg-teal-750 hover:bg-teal-800 text-white font-bold rounded-xl transition-all shadow-md cursor-pointer text-center"
                     >
-                      Step 3: Arrived at Drop-off Position
+                      Langkah 3: Sampai di Lokasi Tujuan Pengantaran
                     </button>
                   )}
 
                   {myActiveOrder.status === 'arrived' && (
                     <button
                       onClick={() => onUpdateStatus(myActiveOrder.id, 'completed')}
-                      className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-all shadow-md cursor-pointer text-center"
+                      className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-xl transition-all shadow-md cursor-pointer text-center"
                     >
-                      Step 4: Confirm Delivery Finish & Collect Payment
+                      Langkah 4: Konfirmasi Pesanan Selesai Diterima
                     </button>
                   )}
 
-                  <span className="text-[10px] text-slate-400 mt-1 block leading-tight text-center">
-                    Updating the dispatch state will post simulated coordinates and automated notification alerts to the customer.
+                  <span className="text-[10px] text-slate-400 mt-1 block leading-tight text-center font-medium">
+                    Memilih langkah pengiriman di atas akan memicu simulasi GPS rute perjalanan kurir dan mengirimkan notifikasi status ke pelanggan secara real-time.
                   </span>
                 </div>
               </div>
@@ -404,7 +406,7 @@ export default function CourierPanel({
                 <div className="border border-slate-150 rounded-2xl overflow-hidden shadow-inner flex flex-col h-full">
                   <div className="bg-slate-100 px-4 py-2.5 flex items-center gap-1.5 border-b border-slate-150 justify-between">
                     <span className="text-[10px] font-bold text-slate-700 uppercase tracking-widest font-mono">
-                      CHAT WITH customer: {myActiveOrder.customerName}
+                      CHAT DENGAN PELANGGAN: {myActiveOrder.customerName}
                     </span>
                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                   </div>
@@ -413,7 +415,7 @@ export default function CourierPanel({
                   <div className="bg-slate-50 p-4 flex-grow h-52 overflow-y-auto space-y-2.5 text-[11px] font-medium leading-relaxed">
                     {(!myActiveOrder.chatMessages || myActiveOrder.chatMessages.length === 0) ? (
                       <div className="text-center text-slate-400 py-16 font-normal">
-                        Communication open. Select a quick reply or type custom message below to establish contact.
+                        Saluran komunikasi aktif. Tekan salah satu respons cepat di bawah atau tulis pesan kustom Anda untuk menghubungi pelanggan.
                       </div>
                     ) : (
                       myActiveOrder.chatMessages.map((msg, idx) => {
@@ -423,10 +425,10 @@ export default function CourierPanel({
                             <div className={`max-w-[80%] rounded-2xl px-3 py-1.5 ${
                               isMine
                                 ? 'bg-teal-700 text-white rounded-tr-none'
-                                : 'bg-slate-200 text-slate-800 rounded-tl-none'
+                                : 'bg-slate-200 text-slate-800 rounded-tl-none font-semibold'
                             }`}>
                               <p>{msg.message}</p>
-                              <span className={`text-[8px] mt-0.5 block ${isMine ? 'text-teal-100' : 'text-slate-400'} text-right`}>
+                              <span className={`text-[8px] mt-0.5 block ${isMine ? 'text-teal-100' : 'text-slate-450'} text-right`}>
                                 {msg.timestamp}
                               </span>
                             </div>
@@ -440,31 +442,31 @@ export default function CourierPanel({
                   <div className="p-2.5 bg-slate-100/50 border-t border-slate-150 flex flex-wrap gap-1">
                     <button
                       type="button"
-                      onClick={() => sendQuickReply(myActiveOrder.id, "Hi there! I am on my way to deliver your items.")}
-                      className="text-[9px] bg-white border border-slate-200 px-2 py-1 rounded-md text-slate-600 hover:bg-slate-50 font-semibold cursor-pointer"
+                      onClick={() => sendQuickReply(myActiveOrder.id, "Halo! Saya sedang dalam perjalanan untuk mengambil/mengantar makanan/barang Anda.")}
+                      className="text-[9px] bg-white border border-slate-200 px-2 py-1 rounded-md text-slate-650 hover:bg-slate-50 font-bold cursor-pointer"
                     >
-                      "On my way!"
+                      "Saya otw!"
                     </button>
                     <button
                       type="button"
-                      onClick={() => sendQuickReply(myActiveOrder.id, "I have arrived at the designated pick-up entrance!")}
-                      className="text-[9px] bg-white border border-slate-200 px-2 py-1 rounded-md text-slate-600 hover:bg-slate-50 font-semibold cursor-pointer"
+                      onClick={() => sendQuickReply(myActiveOrder.id, "Saya sudah sampai di titik penjemputan/restoran ya!")}
+                      className="text-[9px] bg-white border border-slate-200 px-2 py-1 rounded-md text-slate-650 hover:bg-slate-50 font-bold cursor-pointer"
                     >
-                      "Arrived at pick-up!"
+                      "Sudah sampai!"
                     </button>
                     <button
                       type="button"
-                      onClick={() => sendQuickReply(myActiveOrder.id, "Package securely packed. COMMENCING TRANSIT Now.")}
-                      className="text-[9px] bg-white border border-slate-200 px-2 py-1 rounded-md text-slate-600 hover:bg-slate-50 font-semibold cursor-pointer"
+                      onClick={() => sendQuickReply(myActiveOrder.id, "Pesanan telah sukses diterima dari toko/pengirim. Saya segera meluncur ke lokasi Anda.")}
+                      className="text-[9px] bg-white border border-slate-200 px-2 py-1 rounded-md text-slate-650 hover:bg-slate-50 font-bold cursor-pointer"
                     >
-                      "Commencing Transit!"
+                      "Mulai jalan!"
                     </button>
                     <button
                       type="button"
-                      onClick={() => sendQuickReply(myActiveOrder.id, "Deliver finished at your door boundary. Thanks for selecting CusAntar!")}
-                      className="text-[9px] bg-white border border-slate-200 px-2 py-1 rounded-md text-slate-600 hover:bg-slate-50 font-semibold cursor-pointer"
+                      onClick={() => sendQuickReply(myActiveOrder.id, "Pesanan sudah sukses saya serahkan di lokasi. Terima kasih banyak telah menggunakan layanan kami!")}
+                      className="text-[9px] bg-white border border-slate-200 px-2 py-1 rounded-md text-slate-650 hover:bg-slate-50 font-bold cursor-pointer"
                     >
-                      "Delivery complete!"
+                      "Selesai diantar!"
                     </button>
                   </div>
 
@@ -473,7 +475,7 @@ export default function CourierPanel({
                     <input
                       type="text"
                       className="flex-grow text-xs pl-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:border-teal-700 focus:outline-none"
-                      placeholder="Type custom dispatch message..."
+                      placeholder="Tulis pesan Anda untuk pelanggan..."
                       value={chatInputs[myActiveOrder.id] || ''}
                       onChange={(e) => {
                         const val = e.target.value;
@@ -484,7 +486,7 @@ export default function CourierPanel({
                       type="submit"
                       className="px-4 bg-teal-700 hover:bg-teal-800 text-white text-xs font-black rounded-xl transition-all cursor-pointer"
                     >
-                      Send
+                      Kirim
                     </button>
                   </form>
                 </div>
@@ -495,17 +497,17 @@ export default function CourierPanel({
 
         {/* SCENARIO C: ONLINE & IDLE - WAITING FOR CUSTOMER ORDERS */}
         {courier.isOnline && !myActiveOrder && (
-          <div className="space-y-6 animate-fade-in">
+          <div className="space-y-6 animate-fade-in font-sans">
             {/* GPS Pulse Animation area */}
             <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 text-center relative overflow-hidden text-white shadow-xl">
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-teal-500/10 rounded-full animate-ping pointer-events-none"></div>
 
               <Truck className="w-12 h-12 text-teal-400 mx-auto mb-3 animate-pulse" />
               <h3 className="text-sm font-black font-mono tracking-widest text-teal-400 uppercase">
-                ACTIVE GPS RADAR DISPATCH ON
+                RADAR DETEKSI GPS AKTIF
               </h3>
-              <p className="text-xs text-slate-400 max-w-sm mx-auto mt-2 leading-relaxed">
-                Scanning the city grid block for incoming restaurant, parcel, or taxi cab bookings. Try booking from the Customer Portal above or tap "Generate Synthetic Customer Request" on the left sidebar to simulate!
+              <p className="text-xs text-slate-450 max-w-sm mx-auto mt-2 leading-relaxed font-semibold">
+                Sedang memindai jalanan kota demi mendeteksi pesanan kuliner, paket barang, atau perjalanan taksi online terdekat. Anda dapat meluncurkan pesanan baru lewat Portal Pelanggan di atas, atau menekan tombol "Buat Simulasi Pesanan Baru" di bagian kiri!
               </p>
             </div>
 
@@ -513,14 +515,14 @@ export default function CourierPanel({
             <div className="bg-white rounded-3xl border border-slate-150 p-6 space-y-4 shadow-md">
               <div className="flex justify-between items-center border-b border-slate-100 pb-3">
                 <h3 className="text-xs font-bold font-mono text-slate-850 uppercase tracking-widest">
-                  Live Terminal Requests ({pendingRequests.length})
+                  Antrean Permintaan Masuk ({pendingRequests.length})
                 </h3>
-                <span className="text-[10px] text-teal-700 font-mono font-bold animate-pulse">● LIVE SCANNING</span>
+                <span className="text-[10px] text-teal-700 font-mono font-bold animate-pulse font-bold">● MEMINDAI AKTIF</span>
               </div>
 
               {pendingRequests.length === 0 ? (
-                <p className="text-center py-6 text-xs text-slate-400">
-                  No pending bookings found on the grid right now.
+                <p className="text-center py-6 text-xs text-slate-400 font-semibold">
+                  Belum ada pesanan aktif yang mengantre di wilayah Anda saat ini.
                 </p>
               ) : (
                 <div className="space-y-3.5">
@@ -531,34 +533,34 @@ export default function CourierPanel({
                     >
                       <div className="space-y-1.5 min-w-0 flex-grow">
                         <div className="flex items-center gap-2">
-                          <span className="text-[9px] uppercase tracking-wider font-bold px-2 py-0.5 rounded bg-amber-500 text-white font-mono">
-                            {ord.type}
+                          <span className="text-[9px] uppercase tracking-wider font-extrabold px-2.5 py-0.5 rounded bg-amber-500 text-slate-950 font-mono">
+                            {ord.type === 'food' ? 'CusFood' : ord.type === 'goods' ? 'CusSend' : 'CusRide'}
                           </span>
-                          <span className="text-[11px] text-slate-500 block font-mono font-bold">
+                          <span className="text-[11px] text-slate-400 block font-mono font-bold">
                             #{ord.id.slice(0, 12).toUpperCase()}
                           </span>
                         </div>
 
-                        <div className="text-xs font-medium text-slate-800">
-                          <span className="text-slate-400 text-[10px] block uppercase font-mono tracking-wider">Pickup destination</span>
+                        <div className="text-xs font-semibold text-slate-800">
+                          <span className="text-slate-400 text-[10px] block uppercase font-mono tracking-wider font-bold">Lokasi Penjemputan / Toko</span>
                           <span className="font-bold text-slate-900 block truncate max-w-sm mt-0.5">{ord.origin.address}</span>
-                          <span className="text-slate-400 text-[10px] block uppercase font-mono tracking-wider mt-1.5">Drop-off destination</span>
+                          <span className="text-slate-400 text-[10px] block uppercase font-mono tracking-wider mt-1.5 font-bold">Destinasi Pengantaran Penumpang/Kargo</span>
                           <span className="font-bold text-slate-900 block truncate max-w-sm mt-0.5">{ord.destination.address}</span>
                         </div>
                       </div>
 
                       <div className="text-right flex flex-col items-end gap-2 flex-shrink-0 w-full md:w-auto mt-2 md:mt-0 pt-3 md:pt-0 border-t border-dashed border-slate-150 md:border-t-0">
                         <div>
-                          <span className="text-[9px] text-slate-400 font-mono block uppercase">Est. Commission Share</span>
-                          <span className="text-base font-bold text-teal-800 font-mono block">
+                          <span className="text-[9px] text-slate-400 font-mono block uppercase">Komisi Bersih Anda</span>
+                          <span className="text-base font-black text-teal-850 font-mono block">
                             IDR {Math.round(ord.fare * 0.9).toLocaleString()}
                           </span>
                         </div>
                         <button
                           onClick={() => onUpdateStatus(ord.id, 'accepted')}
-                          className="w-full md:w-auto px-5 py-2 bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold rounded-xl transition-all shadow-md cursor-pointer"
+                          className="w-full md:w-auto px-5 py-2 bg-teal-700 hover:bg-teal-800 text-white text-xs font-black rounded-xl transition-all shadow-md cursor-pointer"
                         >
-                          Accept Booking Request
+                          Terima & Jalankan Tugas
                         </button>
                       </div>
                     </div>

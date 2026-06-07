@@ -70,11 +70,17 @@ export default function CustomerPanel({
   const [selectedRestId, setSelectedRestId] = useState<string | null>(null);
   const [cart, setCart] = useState<{ [itemId: string]: number }>({});
   const [foodNote, setFoodNote] = useState('');
+  const [foodSearchQuery, setFoodSearchQuery] = useState('');
+  const [foodCategory, setFoodCategory] = useState('Semua'); // Semua | Burger/Western | Nusantara | Kopi/Roti | Minuman & Dessert
+  const [menuSearchQuery, setMenuSearchQuery] = useState('');
+  const [promoCode, setPromoCode] = useState('');
+  const [appliedPromo, setAppliedPromo] = useState<string | null>(null);
+  const [promoDiscount, setPromoDiscount] = useState(0);
 
   // 3. CusRide (Passenger) States
   const [rideTier, setRideTier] = useState<'standard' | 'premium'>('standard');
   const [passengerCount, setPassengerCount] = useState(1);
-  const [rideNote, setRideNote] = useState('Waiting at the main lobby near the fountain.');
+  const [rideNote, setRideNote] = useState('Menunggu di lobi utama dekat air mancur.');
 
   // Top Up Dialog state
   const [topUpAmount, setTopUpAmount] = useState('50000');
@@ -97,9 +103,9 @@ export default function CustomerPanel({
     } else {
       // Food
       const foodTotal = getCartTotal();
-      baseFare = foodTotal + 12000; // IDR 12,000 standard delivery
+      baseFare = foodTotal + 12000 - promoDiscount; // Standard IDR 12,000 delivery fee minus discount
     }
-    return Math.round(baseFare);
+    return Math.max(0, Math.round(baseFare));
   };
 
   const currentFare = getFares();
@@ -129,7 +135,7 @@ export default function CustomerPanel({
     });
   };
 
-  const getCartTotal = () => {
+  function getCartTotal() {
     if (!selectedRestId) return 0;
     const rest = MOCK_RESTAURANTS.find(r => r.id === selectedRestId);
     if (!rest) return 0;
@@ -141,7 +147,7 @@ export default function CustomerPanel({
       }
     });
     return total;
-  };
+  }
 
   const getCartItemCount = () => {
     let count = 0;
@@ -154,7 +160,12 @@ export default function CustomerPanel({
   // Place actual unified order
   const handleCheckout = () => {
     if (paymentMethod === 'cuspay' && user.balance < currentFare) {
-      alert('Insufficient CusPay wallet balance. Please top up your wallet first!');
+      alert('Saldo dompet CusPay tidak mencukupi untuk pembayaran ini. Silakan isi saldo Anda terlebih dahulu!');
+      return;
+    }
+
+    if (activeTab === 'food' && getCartItemCount() === 0) {
+      alert('Keranjang belanja Anda masih kosong! Silakan tambahkan menu makanan terlebih dahulu.');
       return;
     }
 
@@ -208,7 +219,7 @@ export default function CustomerPanel({
     onPlaceOrder({
       type: activeTab,
       origin: activeTab === 'food'
-        ? { address: 'Partner Merchant Restaurant Kitchen', lat: -6.1955, lng: 106.8201 }
+        ? { address: 'Dapur Cabang Resto Rekanan', lat: -6.1955, lng: 106.8201 }
         : { address: originLoc.address, lat: originLoc.lat, lng: originLoc.lng },
       destination: { address: destLoc.address, lat: destLoc.lat, lng: destLoc.lng },
       fare: currentFare,
@@ -219,6 +230,9 @@ export default function CustomerPanel({
     // Reset localized fields
     setCart({});
     setSelectedRestId(null);
+    setAppliedPromo(null);
+    setPromoDiscount(0);
+    setPromoCode('');
   };
 
   const handleWalletTopUp = (e: React.FormEvent) => {
@@ -254,9 +268,9 @@ export default function CustomerPanel({
           <div className="flex justify-between items-start">
             <div>
               <span className="text-[10px] uppercase font-mono tracking-wider text-amber-500 font-bold bg-amber-500/10 px-2.5 py-0.5 rounded-full">
-                CusPay Authorized Member
+                Anggota Resmi Terverifikasi CusPay
               </span>
-              <h1 className="text-2xl font-bold font-sans tracking-tight mt-1">Hello, {user.name}!</h1>
+              <h1 className="text-2xl font-bold font-sans tracking-tight mt-1">Halo, {user.name}!</h1>
               <span className="text-xs text-slate-400 mt-0.5 block">{user.email} • {user.phone}</span>
             </div>
             {/* Wallet Quick Balance Badge */}
@@ -265,7 +279,7 @@ export default function CustomerPanel({
                 <Wallet className="w-5 h-5" />
               </div>
               <div>
-                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block font-mono">CusPay Balance</span>
+                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block font-mono">Saldo CusPay</span>
                 <span className="text-lg font-bold text-yellow-500 font-sans">
                   IDR {user.balance.toLocaleString()}
                 </span>
@@ -276,27 +290,27 @@ export default function CustomerPanel({
           {/* Quick Wallet Top Up trigger */}
           <form onSubmit={handleWalletTopUp} className="mt-5 pt-4 border-t border-slate-800 flex items-center gap-3">
             <span className="text-[11px] font-bold text-slate-400 uppercase font-mono flex items-center gap-1">
-              Top Up CusPay:
+              Isi Saldo CusPay:
             </span>
             <select
               value={topUpAmount}
               onChange={(e) => setTopUpAmount(e.target.value)}
               className="text-xs bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-amber-500 text-slate-100 font-medium"
             >
-              <option value="25000">IDR 25,000</option>
-              <option value="50000">IDR 50,000 (Popular)</option>
-              <option value="100000">IDR 100,000</option>
-              <option value="250000">IDR 250,000</option>
+              <option value="25000">IDR 25.000</option>
+              <option value="50000">IDR 50.000 (Populer)</option>
+              <option value="100000">IDR 100.000</option>
+              <option value="250000">IDR 250.000</option>
             </select>
             <button
               type="submit"
               className="px-3 py-1.5 bg-yellow-500 hover:bg-yellow-600 text-xs text-slate-950 font-bold rounded-lg transition-all shadow-md cursor-pointer flex items-center gap-1"
             >
-              <Plus className="w-3.5 h-3.5" /> Instant Add
+              <Plus className="w-3.5 h-3.5" /> Tambah Instan
             </button>
             {showTopUpMsg && (
               <span className="text-[11px] font-semibold text-emerald-500 animate-pulse font-sans flex items-center gap-1">
-                <CheckCircle2 className="w-3.5 h-3.5" /> Top-up Success!
+                <CheckCircle2 className="w-3.5 h-3.5" /> Top-up Berhasil!
               </span>
             )}
           </form>
@@ -313,7 +327,7 @@ export default function CustomerPanel({
               }`}
             >
               <Package className="w-5 h-5 mb-0.5" />
-              <span>CusSend (Goods)</span>
+              <span>CusSend (Kirim Barang)</span>
               {activeTab === 'goods' && <div className="absolute bottom-0 left-0 right-0 h-1 bg-amber-500" />}
             </button>
 
@@ -324,7 +338,7 @@ export default function CustomerPanel({
               }`}
             >
               <Utensils className="w-5 h-5 mb-0.5" />
-              <span>CusFood (Food)</span>
+              <span>CusFood (Pesan Kuliner)</span>
               {activeTab === 'food' && <div className="absolute bottom-0 left-0 right-0 h-1 bg-amber-500" />}
             </button>
 
@@ -335,7 +349,7 @@ export default function CustomerPanel({
               }`}
             >
               <Car className="w-5 h-5 mb-0.5" />
-              <span>CusRide (Passengers)</span>
+              <span>CusRide (Antar Penumpang)</span>
               {activeTab === 'passenger' && <div className="absolute bottom-0 left-0 right-0 h-1 bg-amber-500" />}
             </button>
           </div>
@@ -346,7 +360,7 @@ export default function CustomerPanel({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5 p-4 bg-slate-50 rounded-2xl border border-slate-100">
                 <div>
                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
-                    Pick-up Address
+                    Alamat Penjemputan
                   </label>
                   <select
                     value={originIndex}
@@ -361,7 +375,7 @@ export default function CustomerPanel({
 
                 <div>
                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
-                    Drop-off Address
+                    Alamat Pengantaran
                   </label>
                   <select
                     value={destIndex}
@@ -381,12 +395,12 @@ export default function CustomerPanel({
               <div className="space-y-4">
                 <div className="flex items-center gap-2 mb-3 bg-indigo-50 border border-indigo-100 text-indigo-900 rounded-xl px-4 py-2 text-xs">
                   <span className="w-1.5 h-1.5 rounded-full bg-indigo-600 animate-pulse" />
-                  <span>Parcel delivers instantly using optimized smart-routing with full tracking insurance.</span>
+                  <span>Paket dikirim seketika menggunakan rute pintar optimal disertai jaminan pelacakan penuh.</span>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">What are you sending?</label>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Apa yang Anda kirim?</label>
                     <input
                       type="text"
                       className="w-full text-xs font-medium border border-slate-200 focus:border-amber-500 focus:outline-none rounded-xl px-3 py-2.5"
@@ -395,7 +409,7 @@ export default function CustomerPanel({
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Estimated Weight (kg)</label>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Estimasi Berat (kg)</label>
                     <div className="flex items-center gap-2">
                       <input
                         type="number"
@@ -412,7 +426,7 @@ export default function CustomerPanel({
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Recipient Name</label>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Nama Penerima</label>
                     <div className="relative">
                       <User className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
                       <input
@@ -424,7 +438,7 @@ export default function CustomerPanel({
                     </div>
                   </div>
                   <div>
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Recipient Phone Contact</label>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Nomor Telepon Penerima</label>
                     <div className="relative">
                       <Phone className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
                       <input
@@ -438,51 +452,116 @@ export default function CustomerPanel({
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Courier Dispatch Notes / Address Details</label>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Catatan Driver / Detail Alamat Lengkap</label>
                   <textarea
                     rows={2}
                     className="w-full text-xs font-medium border border-slate-200 focus:border-amber-500 focus:outline-none rounded-xl p-3"
-                    placeholder="e.g. Leave package with reception on 12th floor."
+                    placeholder="Contoh: Titipkan paket ke resepsionis di lantai 12."
                     value={parcelNote}
                     onChange={(e) => setParcelNote(e.target.value)}
                   />
                 </div>
               </div>
-            )}
-
-            {/* B) CUSFOOD INTEGRATED PLATFORM */}
+            )}            {/* B) CUSFOOD INTEGRATED PLATFORM */}
             {activeTab === 'food' && (
-              <div className="space-y-4">
+              <div id="cusfood-integrated-section" className="space-y-4">
                 {!selectedRestId ? (
-                  <div>
-                    <h3 className="text-sm font-bold text-slate-900 mb-3 block">Top Recommended Local Merchants</h3>
-                    <div className="space-y-3">
-                      {MOCK_RESTAURANTS.map((rest) => (
-                        <div
-                          key={rest.id}
-                          className="flex items-center gap-4 p-3 border border-slate-100 rounded-2xl hover:border-amber-400 hover:bg-amber-50/10 cursor-pointer transition-all"
-                          onClick={() => { setSelectedRestId(rest.id); setCart({}); }}
-                        >
-                          <img
-                            src={rest.image}
-                            alt={rest.name}
-                            className="w-16 h-16 object-cover rounded-xl flex-shrink-0"
-                            referrerPolicy="no-referrer"
+                  <div className="space-y-4">
+                    {/* Search and Category Filter Section */}
+                    <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl space-y-3">
+                      <div className="flex flex-col md:flex-row gap-3 items-center">
+                        <div className="relative flex-grow w-full">
+                          <Compass className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
+                          <input
+                            type="text"
+                            placeholder="Cari restoran atau kuliner favorit Anda..."
+                            value={foodSearchQuery}
+                            onChange={(e) => setFoodSearchQuery(e.target.value)}
+                            className="w-full pl-9 pr-4 py-2 text-xs border border-slate-200 focus:border-amber-500 focus:outline-none rounded-xl"
                           />
-                          <div className="flex-grow min-w-0">
-                            <span className="text-[10px] uppercase tracking-wider font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full inline-block mb-1 font-mono">
-                              {rest.cuisine}
-                            </span>
-                            <h4 className="font-bold text-sm text-slate-950 truncate">{rest.name}</h4>
-                            <div className="flex items-center gap-3 mt-1 text-slate-500 text-[11px] font-semibold">
-                              <span className="flex items-center gap-0.5 text-amber-500"><Star className="w-3.5 h-3.5 fill-current" /> {rest.rating}</span>
-                              <span>•</span>
-                              <span>Express Delivery: {rest.deliveryTime}</span>
-                            </div>
-                          </div>
-                          <ChevronRight className="w-5 h-5 text-slate-400 flex-shrink-0" />
                         </div>
-                      ))}
+                        {foodSearchQuery && (
+                          <button
+                            onClick={() => setFoodSearchQuery('')}
+                            className="text-xs text-slate-500 hover:text-slate-800 cursor-pointer underline shrink-0"
+                          >
+                            Bersihkan Pencarian
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Filter Badges */}
+                      <div className="flex flex-wrap gap-1.5 pt-1">
+                        {['Semua', 'Tradisional Indonesia', 'Barat / Burger', 'Kopi & Dessert'].map((cat) => (
+                          <button
+                            key={cat}
+                            type="button"
+                            onClick={() => setFoodCategory(cat)}
+                            className={`px-3 py-1.5 rounded-xl text-[10px] font-bold transition-all cursor-pointer ${
+                              foodCategory === cat
+                                ? 'bg-amber-500 text-slate-950 font-black shadow-sm'
+                                : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                            }`}
+                          >
+                            {cat}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <h3 className="text-sm font-bold text-slate-900 mb-1 flex items-center gap-1">
+                      <Sparkles className="w-4 h-4 text-amber-500" />
+                      <span>Rekomendasi Resto Rekanan Terbaik</span>
+                    </h3>
+
+                    <div className="space-y-3">
+                      {MOCK_RESTAURANTS.filter((rest) => {
+                        const matchesCategory =
+                          foodCategory === 'Semua' || rest.cuisine === foodCategory;
+                        const matchesSearch =
+                          rest.name.toLowerCase().includes(foodSearchQuery.toLowerCase()) ||
+                          rest.cuisine.toLowerCase().includes(foodSearchQuery.toLowerCase());
+                        return matchesCategory && matchesSearch;
+                      }).length === 0 ? (
+                        <div className="text-center py-8 bg-slate-50 rounded-2xl border border-dashed border-slate-200/60 p-4">
+                          <AlertCircle className="w-8 h-8 text-slate-400 mx-auto mb-2" />
+                          <p className="text-xs text-slate-500 font-bold">Tidak ada restoran yang cocok dengan pencarian Anda.</p>
+                        </div>
+                      ) : (
+                        MOCK_RESTAURANTS.filter((rest) => {
+                          const matchesCategory =
+                            foodCategory === 'Semua' || rest.cuisine === foodCategory;
+                          const matchesSearch =
+                            rest.name.toLowerCase().includes(foodSearchQuery.toLowerCase()) ||
+                            rest.cuisine.toLowerCase().includes(foodSearchQuery.toLowerCase());
+                          return matchesCategory && matchesSearch;
+                        }).map((rest) => (
+                          <div
+                            key={rest.id}
+                            className="flex items-center gap-4 p-3.5 border border-slate-100 bg-white rounded-2xl hover:border-amber-400 hover:bg-amber-50/10 cursor-pointer transition-all shadow-sm"
+                            onClick={() => { setSelectedRestId(rest.id); setCart({}); setMenuSearchQuery(''); }}
+                          >
+                            <img
+                              src={rest.image}
+                              alt={rest.name}
+                              className="w-16 h-16 object-cover rounded-2xl flex-shrink-0 border border-slate-100"
+                              referrerPolicy="no-referrer"
+                            />
+                            <div className="flex-grow min-w-0">
+                              <span className="text-[9px] uppercase tracking-wider font-extrabold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full inline-block mb-1.5 font-mono">
+                                {rest.cuisine}
+                              </span>
+                              <h4 className="font-bold text-sm text-slate-950 truncate">{rest.name}</h4>
+                              <div className="flex items-center gap-3 mt-1.5 text-slate-500 text-[11px] font-semibold">
+                                <span className="flex items-center gap-0.5 text-amber-500"><Star className="w-3.5 h-3.5 fill-current" /> {rest.rating}</span>
+                                <span>•</span>
+                                <span>Estimasi Kirim: {rest.deliveryTime}</span>
+                              </div>
+                            </div>
+                            <ChevronRight className="w-5 h-5 text-slate-400 flex-shrink-0" />
+                          </div>
+                        ))
+                      )}
                     </div>
                   </div>
                 ) : (
@@ -492,61 +571,125 @@ export default function CustomerPanel({
                       const rest = MOCK_RESTAURANTS.find(r => r.id === selectedRestId)!;
                       return (
                         <div className="space-y-4">
-                          <div className="flex items-center gap-3 p-3 bg-amber-50/50 border border-amber-100 rounded-2xl">
-                            <button
-                              type="button"
-                              onClick={() => setSelectedRestId(null)}
-                              className="text-amber-700 hover:text-amber-800 text-xs font-bold underline cursor-pointer"
-                            >
-                              ← Pick Another Restaurant
-                            </button>
-                            <span className="text-slate-400">/</span>
-                            <span className="font-bold text-xs text-slate-700 font-mono">{rest.name} Menu</span>
+                          <div className="flex items-center justify-between p-3 bg-amber-50/50 border border-amber-100 rounded-2xl">
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => { setSelectedRestId(null); setAppliedPromo(null); setPromoDiscount(0); }}
+                                className="text-amber-700 hover:text-amber-800 text-xs font-black underline cursor-pointer flex items-center gap-1.5"
+                              >
+                                ← &nbsp;Ganti Menu Restoran
+                              </button>
+                            </div>
+                            <span className="font-extrabold text-xs text-amber-900 font-mono">Menu {rest.name}</span>
+                          </div>
+
+                          {/* Search inside menu */}
+                          <div className="relative w-full">
+                            <input
+                              type="text"
+                              placeholder={`Cari makanan di ${rest.name}...`}
+                              value={menuSearchQuery}
+                              onChange={(e) => setMenuSearchQuery(e.target.value)}
+                              className="w-full px-4 py-2 text-xs border border-slate-200 focus:border-amber-500 focus:outline-none rounded-xl"
+                            />
                           </div>
 
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            {rest.items.map((item) => (
-                              <div key={item.id} className="p-3 border border-slate-100 rounded-xl flex gap-3 items-start justify-between hover:border-slate-200 transition-all">
-                                <div className="flex-grow min-w-0">
-                                  <h5 className="font-bold text-xs text-slate-900 truncate">{item.name}</h5>
-                                  <p className="text-[10px] text-slate-500 mt-0.5 line-clamp-2 pr-2">{item.description}</p>
-                                  <span className="text-xs font-bold text-amber-600 font-mono mt-2 block">IDR {item.price.toLocaleString()}</span>
-                                </div>
-                                <div className="flex flex-col items-center gap-2 flex-shrink-0">
-                                  <img src={item.image} className="w-14 h-14 object-cover rounded-xl" referrerPolicy="no-referrer" />
-                                  {cart[item.id] ? (
-                                    <div className="flex items-center gap-2.5 bg-slate-100 rounded-lg px-2 py-1">
-                                      <button type="button" onClick={() => removeFromCart(item.id)} className="p-0.5 text-slate-600 hover:bg-slate-200 rounded cursor-pointer">
-                                        <Minus className="w-3 h-3" />
-                                      </button>
-                                      <span className="text-xs font-bold text-slate-800">{cart[item.id]}</span>
-                                      <button type="button" onClick={() => addToCart(item.id)} className="p-0.5 text-slate-600 hover:bg-slate-200 rounded cursor-pointer">
-                                        <Plus className="w-3 h-3" />
-                                      </button>
-                                    </div>
-                                  ) : (
-                                    <button
-                                      type="button"
-                                      onClick={() => addToCart(item.id)}
-                                      className="py-1 px-3 bg-amber-500 hover:bg-amber-600 text-[10px] font-bold text-white rounded-lg transition-all cursor-pointer shadow-sm"
-                                    >
-                                      Add to Cart
-                                    </button>
-                                  )}
-                                </div>
+                            {rest.items.filter(item =>
+                              item.name.toLowerCase().includes(menuSearchQuery.toLowerCase()) ||
+                              item.description.toLowerCase().includes(menuSearchQuery.toLowerCase())
+                            ).length === 0 ? (
+                              <div className="md:col-span-2 text-center py-6 text-slate-400 text-xs">
+                                Menu tidak ditemukan. Coba pencarian lain!
                               </div>
-                            ))}
+                            ) : (
+                              rest.items.filter(item =>
+                                item.name.toLowerCase().includes(menuSearchQuery.toLowerCase()) ||
+                                item.description.toLowerCase().includes(menuSearchQuery.toLowerCase())
+                              ).map((item) => (
+                                <div key={item.id} className="p-3 border border-slate-100 rounded-xl flex gap-3 bg-white items-start justify-between hover:border-slate-200 transition-all shadow-sm">
+                                  <div className="flex-grow min-w-0">
+                                    <h5 className="font-bold text-xs text-slate-900 truncate">{item.name}</h5>
+                                    <p className="text-[10px] text-slate-500 mt-0.5 line-clamp-2 pr-2">{item.description}</p>
+                                    <span className="text-xs font-black text-amber-600 font-mono mt-2 block">IDR {item.price.toLocaleString()}</span>
+                                  </div>
+                                  <div className="flex flex-col items-center gap-2 flex-shrink-0">
+                                    <img src={item.image} className="w-14 h-14 object-cover rounded-xl" referrerPolicy="no-referrer" />
+                                    {cart[item.id] ? (
+                                      <div className="flex items-center gap-2 bg-slate-100 rounded-lg px-2 py-1">
+                                        <button type="button" onClick={() => removeFromCart(item.id)} className="p-0.5 text-slate-600 hover:bg-slate-200 rounded cursor-pointer">
+                                          <Minus className="w-3 h-3" />
+                                        </button>
+                                        <span className="text-xs font-bold text-slate-800">{cart[item.id]}</span>
+                                        <button type="button" onClick={() => addToCart(item.id)} className="p-0.5 text-slate-600 hover:bg-slate-200 rounded cursor-pointer">
+                                          <Plus className="w-3 h-3" />
+                                        </button>
+                                      </div>
+                                    ) : (
+                                      <button
+                                        type="button"
+                                        onClick={() => addToCart(item.id)}
+                                        className="py-1 px-3 bg-amber-500 hover:bg-amber-600 text-[10px] font-bold text-slate-950 rounded-lg transition-all cursor-pointer shadow-sm"
+                                      >
+                                        Tambah
+                                      </button>
+                                    )}
+                                  </div>
+                                </div>
+                              ))
+                            )}
                           </div>
+
+                          {/* Coupon Promo Integration */}
+                          {getCartItemCount() > 0 && (
+                            <div className="p-4 bg-amber-50/60 border border-amber-200/60 rounded-2xl space-y-2">
+                              <label className="text-[10px] font-bold text-amber-900 uppercase tracking-wider block">Gunakan Kode Kupon Belanja (Gunakan CUSHEMAT untuk diskon IDR 15.000!)</label>
+                              <div className="flex gap-2">
+                                <input
+                                  type="text"
+                                  placeholder="Contoh: CUSHEMAT"
+                                  value={promoCode}
+                                  onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                                  className="px-3 py-1.5 text-xs bg-white border border-slate-200 focus:outline-none focus:border-amber-500 rounded-lg uppercase flex-grow font-semibold"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (promoCode === 'CUSHEMAT') {
+                                      setAppliedPromo('CUSHEMAT');
+                                      setPromoDiscount(15000);
+                                      alert('Kupon CUSHEMAT berhasil dipasang! Anda menghemat IDR 15.000.');
+                                    } else if (promoCode === 'DISKON10') {
+                                      setAppliedPromo('DISKON10');
+                                      setPromoDiscount(10000);
+                                      alert('Kupon DISKON10 berhasil dipasang! Anda menghemat IDR 10.000.');
+                                    } else {
+                                      alert('Kode promo tidak valid atau kadaluarsa.');
+                                    }
+                                  }}
+                                  className="px-4 py-1.5 bg-slate-900 hover:bg-slate-950 text-white rounded-lg text-xs font-bold cursor-pointer transition-all"
+                                >
+                                  Gunakan
+                                </button>
+                              </div>
+                              {appliedPromo && (
+                                <div className="text-[11px] text-emerald-700 font-bold flex items-center gap-1 pt-1">
+                                  <CheckCircle2 className="w-3.5 h-3.5" /> Kupon {appliedPromo} Aktif (Potongan IDR {promoDiscount.toLocaleString()})
+                                </div>
+                              )}
+                            </div>
+                          )}
 
                           {/* Food Destination and delivery details */}
                           <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-3 mt-4">
                             <h4 className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                              Deliver To:
+                              Kirim Ke Alamat:
                             </h4>
                             <select
                               value={destIndex}
                               onChange={(e) => setDestIndex(parseInt(e.target.value))}
-                              className="w-full text-xs font-medium bg-white border border-slate-200 rounded-xl px-3 py-2.5"
+                              className="w-full text-xs font-medium bg-white border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-amber-500"
                             >
                               {PRESET_LOCATIONS.map((loc, idx) => (
                                 <option key={idx} value={idx}>{loc.address}</option>
@@ -554,11 +697,11 @@ export default function CustomerPanel({
                             </select>
 
                             <div>
-                              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Kitchen Directions / Room Notes</label>
+                              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Catatan Kamar / Petunjuk Pengiriman Kuliner</label>
                               <input
                                 type="text"
-                                className="w-full text-xs font-medium bg-white border border-slate-200 rounded-xl px-3 py-2.5"
-                                placeholder="e.g. Delivery at unit 14C. Ring doorbell once."
+                                className="w-full text-xs font-medium bg-white border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                                placeholder="Contoh: Unit 24B, lobi lurus ke kiri depan lift."
                                 value={foodNote}
                                 onChange={(e) => setFoodNote(e.target.value)}
                               />
@@ -577,12 +720,12 @@ export default function CustomerPanel({
               <div className="space-y-4">
                 <div className="flex items-center gap-2 mb-3 bg-emerald-50 border border-emerald-100 text-emerald-900 rounded-xl px-4 py-2 text-xs">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
-                  <span>Licensed drivers checked for clean credentials & vehicle inspections.</span>
+                  <span>Pengemudi berlisensi kami telah melalui verifikasi identitas & memiliki kelayakan kendaraan bintang lima.</span>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Select Ride Category</label>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Kategori Kendaraan</label>
                     <div className="grid grid-cols-2 gap-2">
                       <button
                         type="button"
@@ -593,8 +736,8 @@ export default function CustomerPanel({
                             : 'border-slate-200 text-slate-600 font-medium text-xs hover:bg-slate-50'
                         }`}
                       >
-                        <span className="block text-xs">CusRide Bike</span>
-                        <span className="text-[9px] text-slate-500 font-normal">Fastest Solo Route</span>
+                        <span className="block text-xs">CusRide Motor</span>
+                        <span className="text-[9px] text-slate-500 font-normal">Perjalanan Solo Tercepat</span>
                       </button>
                       <button
                         type="button"
@@ -605,25 +748,25 @@ export default function CustomerPanel({
                             : 'border-slate-200 text-slate-600 font-medium text-xs hover:bg-slate-50'
                         }`}
                       >
-                        <span className="block text-xs">CusRide Car</span>
-                        <span className="text-[9px] text-slate-500 font-normal">Spacious AC Cabin</span>
+                        <span className="block text-xs">CusRide Mobil</span>
+                        <span className="text-[9px] text-slate-500 font-normal">Kabin Lega Ber-AC</span>
                       </button>
                     </div>
                   </div>
 
                   <div>
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Number of Passengers</label>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Jumlah Penumpang</label>
                     <select
                       value={passengerCount}
                       onChange={(e) => setPassengerCount(parseInt(e.target.value))}
                       className="w-full text-xs font-medium border border-slate-200 focus:outline-none rounded-xl px-3 py-3"
                     >
-                      <option value="1">1 Passenger (Solo Rider)</option>
+                      <option value="1">1 Penumpang (Solo)</option>
                       {rideTier === 'premium' && (
                         <>
-                          <option value="2">2 Passengers</option>
-                          <option value="3">3 Passengers</option>
-                          <option value="4">4 Passengers (Max Hatchback)</option>
+                          <option value="2">2 Penumpang</option>
+                          <option value="3">3 Penumpang</option>
+                          <option value="4">4 Penumpang (Maks Hatchback)</option>
                         </>
                       )}
                     </select>
@@ -631,11 +774,11 @@ export default function CustomerPanel({
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Pickup Standing Landmark notes</label>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Petunjuk Titik Jemput / Landmark Berdiri</label>
                   <textarea
                     rows={2}
                     className="w-full text-xs font-medium border border-slate-200 focus:border-amber-500 focus:outline-none rounded-xl p-3"
-                    placeholder="e.g. Standing opposite the main elevator lobby, wearing cream shirt."
+                    placeholder="Contoh: Berdiri di seberang lobby lift utama, menggunakan kemeja krem."
                     value={rideNote}
                     onChange={(e) => setRideNote(e.target.value)}
                   />
@@ -647,18 +790,18 @@ export default function CustomerPanel({
             {!(activeTab === 'food' && !selectedRestId) && (
               <div className="mt-6 pt-5 border-t border-slate-100 flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4">
                 <div>
-                  <span className="text-[10px] uppercase font-mono tracking-wider font-bold text-slate-400 block">estimated total payment</span>
+                  <span className="text-[10px] uppercase font-mono tracking-wider font-bold text-slate-400 block">estimasi total pembayaran</span>
                   <div className="flex items-baseline gap-2">
                     <span className="text-2xl font-bold font-sans text-slate-900 tracking-tight">
                       IDR {currentFare.toLocaleString()}
                     </span>
                     <span className="text-[10px] text-slate-500 font-semibold">
-                      (incl. VAT & system fee)
+                      (termasuk PPN & biaya sistem)
                     </span>
                   </div>
                   {activeTab !== 'food' && (
                     <span className="text-[10px] text-slate-400 mt-1 block">
-                      Distance: <strong className="text-slate-600">{routeDistance.toFixed(1)} km</strong> • Basic routing rate applied.
+                      Jarak: <strong className="text-slate-600">{routeDistance.toFixed(1)} km</strong> • Tarif standar per kilometer berlaku.
                     </span>
                   )}
                 </div>
@@ -669,7 +812,7 @@ export default function CustomerPanel({
                     <button
                       type="button"
                       onClick={() => setPaymentMethod('cuspay')}
-                      className={`px-3 py-1.5 text-xs font-bold rounded-lg ${
+                      className={`px-3 py-1.5 text-xs font-bold rounded-lg cursor-pointer ${
                         paymentMethod === 'cuspay' ? 'bg-white text-amber-600 shadow-sm' : 'text-slate-600'
                       }`}
                     >
@@ -678,11 +821,11 @@ export default function CustomerPanel({
                     <button
                       type="button"
                       onClick={() => setPaymentMethod('cash')}
-                      className={`px-3 py-1.5 text-xs font-bold rounded-lg ${
+                      className={`px-3 py-1.5 text-xs font-bold rounded-lg cursor-pointer ${
                         paymentMethod === 'cash' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-600'
                       }`}
                     >
-                      Cash
+                      Tunai
                     </button>
                   </div>
 
@@ -690,7 +833,7 @@ export default function CustomerPanel({
                     onClick={handleCheckout}
                     className="px-6 py-3 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white font-bold text-xs rounded-xl shadow-lg shadow-amber-500/10 cursor-pointer flex items-center justify-center gap-2"
                   >
-                    <Sparkles className="w-4 h-4" /> Book {activeTab === 'goods' ? 'CusSend Parcel' : activeTab === 'food' ? 'CusFood Order' : 'CusRide Cab'}
+                    <Sparkles className="w-4 h-4" /> Pesan {activeTab === 'goods' ? 'CusSend (Barang)' : activeTab === 'food' ? 'CusFood (Kuliner)' : 'CusRide (Perjalanan)'}
                   </button>
                 </div>
               </div>
@@ -705,11 +848,11 @@ export default function CustomerPanel({
         {/* ACTIVE COURIER GPS TRACKER FRAME */}
         <div className="bg-white rounded-3xl border border-slate-150 shadow-md overflow-hidden">
           <div className="p-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
-            <h3 className="text-xs font-bold font-mono uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-              <Compass className="w-4 h-4 text-slate-500" /> GPS Dispatch Dispatcher
+            <h3 className="text-xs font-bold font-mono uppercase tracking-wider text-slate-700 flex items-center gap-1.5 font-sans">
+              <Compass className="w-4 h-4 text-slate-500" /> GPS Pelacakan & Status Kurir
             </h3>
             <span className="text-[10px] font-bold bg-amber-500/10 text-amber-700 px-2 py-0.5 rounded-full font-mono">
-              REAL-TIME MAP
+              PETA REAL-TIME
             </span>
           </div>
 
@@ -721,9 +864,9 @@ export default function CustomerPanel({
             {!activeOrderDetails ? (
               <div className="text-center py-8">
                 <Package className="w-10 h-10 text-slate-300 mx-auto mb-2" />
-                <h4 className="text-xs font-bold text-slate-700">No Active Dispatches</h4>
-                <p className="text-[11px] text-slate-500 max-w-[200px] mx-auto mt-1">
-                  Place an order above for goods, food, or passenger rides to observe the simulation.
+                <h4 className="text-xs font-bold text-slate-700">Tidak Ada Pengiriman Aktif</h4>
+                <p className="text-[11px] text-slate-500 max-w-[220px] mx-auto mt-1 font-semibold">
+                  Lakukan pemesanan barang, kuliner, atau perjalanan sepeda/mobil di modul kiri untuk melihat simulasi real-time.
                 </p>
               </div>
             ) : (
@@ -731,18 +874,18 @@ export default function CustomerPanel({
                 {/* Active order info bar */}
                 <div className="flex justify-between items-start mb-4">
                   <div>
-                    <span className="text-[9px] uppercase tracking-wider font-bold px-2 py-0.5 rounded bg-amber-500 text-white font-mono">
-                      {activeOrderDetails.type.toUpperCase()}
+                    <span className="text-[9px] uppercase tracking-wider font-bold px-2.5 py-0.5 rounded bg-amber-500 text-slate-950 font-mono">
+                      {activeOrderDetails.type === 'food' ? 'KULINER (CUSFOOD)' : activeOrderDetails.type === 'goods' ? 'BARANG (CUSSEND)' : 'KENDARAAN (CUSRIDE)'}
                     </span>
                     <h4 className="text-xs font-bold text-slate-900 mt-1.5">
-                      Order ID: {activeOrderDetails.id.slice(0, 10).toUpperCase()}
+                      ID Pesanan: {activeOrderDetails.id.slice(0, 10).toUpperCase()}
                     </h4>
                   </div>
                   <div className="text-right">
-                    <span className="text-xs font-bold text-slate-900 font-mono">
+                    <span className="text-xs font-black text-slate-900 font-mono">
                       IDR {activeOrderDetails.fare.toLocaleString()}
                     </span>
-                    <span className="text-[10px] text-slate-500 block">Via {activeOrderDetails.paymentMethod.toUpperCase()}</span>
+                    <span className="text-[10px] text-slate-550 block font-bold">Metode: {activeOrderDetails.paymentMethod === 'cuspay' ? 'CusPay eWallet' : 'Tunai'}</span>
                   </div>
                 </div>
 
@@ -753,8 +896,8 @@ export default function CustomerPanel({
                     <div className="absolute -left-9 top-0.5 w-6.5 h-6.5 rounded-full border-2 border-emerald-500 bg-white flex items-center justify-center">
                       <div className="w-2 h-2 rounded-full bg-emerald-500" />
                     </div>
-                    <h5 className="text-xs font-bold text-slate-900">Order Dispatched</h5>
-                    <p className="text-[10px] text-slate-500">Wait for courier matching on grid.</p>
+                    <h5 className="text-xs font-bold text-slate-900">Pesanan Dibuat</h5>
+                    <p className="text-[10px] text-slate-500">Menunggu mitra kurir melakukan konfirmasi.</p>
                   </div>
 
                   {/* Step 2: Accepted */}
@@ -769,12 +912,12 @@ export default function CustomerPanel({
                       )}
                     </div>
                     <h5 className={`text-xs font-bold ${['accepted', 'picking_up', 'in_transit', 'arrived', 'completed'].includes(activeOrderDetails.status) ? 'text-slate-900' : 'text-slate-400'}`}>
-                      Courier Matched
+                      Kurir Diterima
                     </h5>
                     {activeOrderDetails.courierName ? (
-                      <p className="text-[10px] text-slate-500">{activeOrderDetails.courierName} ({activeOrderDetails.courierPhone})</p>
+                      <p className="text-[10px] text-slate-550 font-semibold">{activeOrderDetails.courierName} ({activeOrderDetails.courierPhone})</p>
                     ) : (
-                      <p className="text-[10px] text-slate-400">Waiting for driver dispatch...</p>
+                      <p className="text-[10px] text-slate-400">Sedang mencari kurir terdekat...</p>
                     )}
                   </div>
 
@@ -790,9 +933,9 @@ export default function CustomerPanel({
                       )}
                     </div>
                     <h5 className={`text-xs font-bold ${['in_transit', 'arrived', 'completed'].includes(activeOrderDetails.status) ? 'text-slate-900' : 'text-slate-400'}`}>
-                      In Route (Transit)
+                      Dalam Perjalanan (Transit)
                     </h5>
-                    <p className="text-[10px] text-slate-500">Package undergoing transport on board.</p>
+                    <p className="text-[10px] text-slate-500">Kurir sedang menuju ke titik tujuan Anda.</p>
                   </div>
 
                   {/* Step 4: Arrived / Completed */}
@@ -807,18 +950,18 @@ export default function CustomerPanel({
                       )}
                     </div>
                     <h5 className={`text-xs font-bold ${['completed'].includes(activeOrderDetails.status) ? 'text-slate-900' : 'text-slate-400'}`}>
-                      Successfully Delivered
+                      Berhasil Diserahkan
                     </h5>
-                    <p className="text-[10px] text-slate-500">Completed. Safe and sound.</p>
+                    <p className="text-[10px] text-slate-500">Pesanan telah tiba dengan selamat dan selesai.</p>
                   </div>
                 </div>
 
                 {/* Quick Simulation Help Banner */}
                 {activeOrderDetails.status === 'pending' && (
-                  <div className="mt-4 p-3 bg-teal-50 text-teal-800 text-[11px] rounded-xl border border-teal-100 font-sans flex items-start gap-2 leading-relaxed">
+                  <div className="mt-4 p-3 bg-teal-50 text-teal-800 text-[11px] rounded-xl border border-teal-100 font-semibold flex items-start gap-2 leading-relaxed">
                     <AlertCircle className="w-4 h-4 text-teal-600 flex-shrink-0 mt-0.5" />
                     <span>
-                      <strong>Simulator Protip:</strong> Switch to the <strong>"Courier Hub"</strong> at the top header to accept and drive this pending order manually from the cargo deck!
+                      <strong>Tips Simulator:</strong> Silakan buka tab <strong>"Layanan Kurir"</strong> di bilah navigasi atas untuk menerima, mengambil, dan menyelesaikan pengiriman pesanan Anda secara manual!
                     </span>
                   </div>
                 )}
@@ -829,7 +972,7 @@ export default function CustomerPanel({
                     onClick={() => onCancelOrder(activeOrderDetails.id)}
                     className="mt-4 w-full py-2 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold rounded-xl border border-red-200 transition-colors cursor-pointer"
                   >
-                    Cancel Booking Request
+                    Batalkan Pesanan Pemesanan
                   </button>
                 )}
 
@@ -843,11 +986,11 @@ export default function CustomerPanel({
                       </div>
                       <div className="flex-grow min-w-0">
                         <h5 className="font-bold text-xs text-slate-900">{activeOrderDetails.courierName}</h5>
-                        <p className="text-[10px] text-slate-500 mt-0.5">Licensed Custom Courier | 4.9 Rating</p>
+                        <p className="text-[10px] text-slate-550 font-semibold mt-0.5">Kurir Mitra Berlisensi | Rating 4.9</p>
                       </div>
                       <div className="text-right">
                         <span className="text-[11px] font-bold text-slate-900 block font-mono">B 4118 ANT</span>
-                        <span className="text-[9px] text-slate-400 font-mono font-bold block uppercase bg-slate-200/80 px-1.5 py-0.5 rounded-md mt-0.5">Scooter</span>
+                        <span className="text-[9px] text-white font-mono font-bold block uppercase bg-slate-900 px-1.5 py-0.5 rounded-md mt-0.5">Scooter</span>
                       </div>
                     </div>
 
@@ -855,14 +998,14 @@ export default function CustomerPanel({
                     <div className="border border-slate-150 rounded-2xl overflow-hidden shadow-inner">
                       <div className="bg-slate-100 px-4 py-2 flex items-center gap-1.5 border-b border-slate-150">
                         <MessageCircle className="w-3.5 h-3.5 text-slate-550" />
-                        <span className="text-[10px] font-bold text-slate-700 uppercase tracking-wider font-mono">Direct Communication Channel</span>
+                        <span className="text-[10px] font-bold text-slate-700 uppercase tracking-wider font-mono">Hubungi Mitra Kurir</span>
                       </div>
 
                       {/* Chat messages viewport */}
                       <div className="bg-slate-50 p-3 h-40 overflow-y-auto space-y-2 text-[11px] font-medium leading-relaxed">
                         {(!activeOrderDetails.chatMessages || activeOrderDetails.chatMessages.length === 0) ? (
                           <div className="text-center text-slate-400 py-10 font-normal">
-                            No messages logged yet. Send directions to your Courier below!
+                            Belum ada pesan. Kirim instruksi jalan atau sapa kurir di bawah ini!
                           </div>
                         ) : (
                           activeOrderDetails.chatMessages.map((msg, idx) => {
@@ -871,11 +1014,11 @@ export default function CustomerPanel({
                               <div key={idx} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
                                 <div className={`max-w-[80%] rounded-2xl px-3 py-1.5 ${
                                   isMine
-                                    ? 'bg-amber-500 text-white rounded-tr-none'
-                                    : 'bg-slate-200 text-slate-800 rounded-tl-none'
+                                    ? 'bg-amber-500 text-slate-950 font-bold rounded-tr-none'
+                                    : 'bg-slate-200 text-slate-800 rounded-tl-none font-semibold'
                                 }`}>
                                   <p>{msg.message}</p>
-                                  <span className={`text-[8px] mt-0.5 block ${isMine ? 'text-amber-100' : 'text-slate-400'} text-right`}>
+                                  <span className={`text-[8px] mt-0.5 block ${isMine ? 'text-amber-950/80 font-bold' : 'text-slate-450'} text-right`}>
                                     {msg.timestamp}
                                   </span>
                                 </div>
@@ -890,15 +1033,15 @@ export default function CustomerPanel({
                         <input
                           type="text"
                           className="flex-grow text-xs pl-3 pr-2 py-1.5 bg-slate-50 border border-slate-150 rounded-xl focus:outline-none focus:border-amber-500"
-                          placeholder="Type directions here..."
+                          placeholder="Tulis pesan Anda untuk kurir di sini..."
                           value={chatInput}
                           onChange={(e) => setChatInput(e.target.value)}
                         />
                         <button
                           type="submit"
-                          className="px-3 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl transition-all cursor-pointer"
+                          className="px-4 bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-black rounded-xl transition-all cursor-pointer"
                         >
-                          Send
+                          Kirim
                         </button>
                       </form>
                     </div>
@@ -909,13 +1052,13 @@ export default function CustomerPanel({
                 {activeOrderDetails.status === 'completed' && (
                   <div className="mt-5 p-4 bg-yellow-50 border border-yellow-100 rounded-2xl space-y-3">
                     <h4 className="text-xs font-bold text-yellow-950 flex items-center gap-1">
-                      <Star className="w-4.5 h-4.5 text-amber-500 fill-current" /> Rate Professional Driver Service
+                      <Star className="w-4.5 h-4.5 text-amber-500 fill-current" /> Rekomendasi & Rating Pelayanan Kurir
                     </h4>
-                    <p className="text-[10px] text-yellow-800">
-                      Your courier successfully delivered. Rate the service and drop a constructive review.
+                    <p className="text-[10px] text-yellow-800 font-semibold">
+                      Pengantaran selesai dengan sukses. Silakan beri ulasan bintang & komentar konstruktif Anda untuk mitra.
                     </p>
 
-                    <div className="flex gap-1.5 items-center justify-center py-2">
+                    <div className="flex gap-1.5 items-center justify-center py-1">
                       {[1, 2, 3, 4, 5].map((s) => (
                         <button
                           key={s}
@@ -923,7 +1066,7 @@ export default function CustomerPanel({
                           onClick={() => setStars(s)}
                           className="p-1 cursor-pointer hover:scale-110 transition-transform"
                         >
-                          <Star className={`w-6 h-6 ${s <= stars ? 'text-amber-500 fill-current' : 'text-slate-300'}`} />
+                          <Star className={`w-6 h-6 ${s <= stars ? 'text-amber-550 fill-current' : 'text-slate-300'}`} />
                         </button>
                       ))}
                     </div>
@@ -931,7 +1074,7 @@ export default function CustomerPanel({
                     <textarea
                       rows={2}
                       className="w-full text-xs font-medium bg-white border border-slate-200 focus:outline-none rounded-xl p-3"
-                      placeholder="Add an optional comment..."
+                      placeholder="Masukkan ulasan penambah semangat untuk kurir Anda..."
                       value={reviewText}
                       onChange={(e) => setReviewText(e.target.value)}
                     />
@@ -942,9 +1085,9 @@ export default function CustomerPanel({
                         setReviewText('');
                         setSelectedOrder(null);
                       }}
-                      className="w-full py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl shadow-md cursor-pointer transition-all"
+                      className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs rounded-xl shadow-md cursor-pointer transition-all"
                     >
-                      Submit Feedback Review & Clear
+                      Kirim Penilaian Layanan & Tutup
                     </button>
                   </div>
                 )}
@@ -956,8 +1099,8 @@ export default function CustomerPanel({
         {/* ORDER TICKETING HISTORY LEDGER */}
         {activeOrders.length > 0 && (
           <div className="bg-white rounded-3xl border border-slate-150 shadow-md p-5 space-y-3">
-            <h3 className="text-xs font-bold font-mono text-slate-700 uppercase tracking-wider">
-              Dispatched Transactions ({activeOrders.length})
+            <h3 className="text-xs font-bold font-mono text-slate-700 uppercase tracking-wider font-sans">
+              Daftar Transaksi Pesanan Anda ({activeOrders.length})
             </h3>
             <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
               {activeOrders.map((ord) => (
@@ -973,7 +1116,7 @@ export default function CustomerPanel({
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5 mb-1">
                       <span className="text-[8px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 font-mono">
-                        {ord.type}
+                        {ord.type === 'food' ? 'CusFood' : ord.type === 'goods' ? 'CusSend' : 'CusRide'}
                       </span>
                       <span className="text-[10px] text-slate-400 font-mono font-bold uppercase">
                         #{ord.id.slice(0, 8)}
@@ -987,14 +1130,14 @@ export default function CustomerPanel({
                     <span className="text-[10px] font-bold text-slate-900 block font-mono">
                       IDR {ord.fare.toLocaleString()}
                     </span>
-                    <span className={`text-[9px] font-bold ${
+                    <span className={`text-[9px] font-extrabold ${
                       ord.status === 'completed'
                         ? 'text-emerald-600'
                         : ord.status === 'pending'
-                        ? 'text-blue-500 animate-pulse'
+                        ? 'text-blue-550 animate-pulse'
                         : 'text-amber-600'
                     }`}>
-                      {ord.status.toUpperCase()}
+                      {ord.status === 'pending' ? 'MENUNGGU' : ord.status === 'accepted' ? 'DITERIMA' : ord.status === 'picking_up' ? 'DIJEMPUT' : ord.status === 'in_transit' ? 'DIANTAR' : ord.status === 'arrived' ? 'TIBA' : 'SELESAI'}
                     </span>
                   </div>
                 </div>

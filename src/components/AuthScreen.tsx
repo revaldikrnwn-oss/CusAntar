@@ -76,7 +76,7 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
     setErrorMessage('');
 
     if (!email || !name || !phone) {
-      setErrorMessage('Please fill in all general demographic fields.');
+      setErrorMessage('Silakan isi seluruh formulir pendaftaran diri Anda.');
       return;
     }
 
@@ -98,7 +98,7 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
 
     if (selectedRole === 'courier') {
       if (!vehicleModel || !vehiclePlate) {
-        setErrorMessage('Courier accounts require vehicle registrations.');
+        setErrorMessage('Akun kurir membutuhkan data pendaftaran kendaraan.');
         return;
       }
       courierProfile = {
@@ -127,7 +127,7 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
 
       <div className="w-full max-w-md bg-white rounded-3xl border border-slate-100 shadow-2xl overflow-hidden relative z-10">
         {/* Upper Decorative Branding Plate */}
-        <div className="bg-slate-900 px-8 pt-8 pb-7 text-center relative">
+        <div className="bg-slate-905 bg-slate-900 px-8 pt-8 pb-7 text-center relative">
           <div className="absolute top-4 left-4 flex gap-1.5 pointer-events-none mb-4">
             <span className="w-2.5 h-2.5 rounded-full bg-red-500/80" />
             <span className="w-2.5 h-2.5 rounded-full bg-amber-500/80" />
@@ -135,7 +135,7 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
           </div>
           <BrandLogo size="lg" className="mx-auto" />
           <p className="text-slate-400 text-xs mt-1 font-sans tracking-wide">
-            On-Demand Transport, Goods, & Food Logistics
+            Transportasi On-Demand, Pengiriman Barang, & Logistik Kuliner
           </p>
         </div>
 
@@ -151,10 +151,10 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
           {!isRegistering ? (
             <div>
               <h2 className="text-xl font-bold font-sans text-slate-900 tracking-tight mb-2">
-                Fast Portal Access
+                Akses Portal Instan
               </h2>
               <p className="text-slate-500 text-xs mb-6 leading-relaxed">
-                Log in instantly using one of our lightning evaluation mock profiles, or register a new custom driver or consumer account.
+                Masuk seketika menggunakan profil uji coba (simulasi) super cepat di bawah ini, atau daftarkan akun baru sesuai profil kustom Anda.
               </p>
 
               {/* Instant Evaluation Role Selector Cards */}
@@ -165,10 +165,10 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                   className="flex flex-col items-center p-4 rounded-2xl border-2 border-amber-500 bg-amber-50/40 hover:bg-amber-50 transition-all duration-200 group text-left cursor-pointer"
                 >
                   <User className="w-7 h-7 text-amber-600 mb-2 group-hover:scale-110 transition-transform" />
-                  <span className="font-bold text-xs text-slate-900">Run Customer Demo</span>
-                  <span className="text-[10px] text-slate-500 mt-1 text-center font-medium">Revaldi K. • Wallet IDR 350K</span>
+                  <span className="font-bold text-xs text-slate-900">Demo Pelanggan</span>
+                  <span className="text-[10px] text-slate-500 mt-1 text-center font-medium">Revaldi K. • Saldo IDR 350rb</span>
                   <span className="mt-3 flex items-center font-mono font-semibold text-[9px] text-amber-700 bg-amber-100 px-2 py-0.5 rounded-md">
-                    FAST ENTER <ChevronRight className="w-3 h-3 ml-0.5" />
+                    MASUK CEPAT <ChevronRight className="w-3 h-3 ml-0.5" />
                   </span>
                 </button>
 
@@ -178,17 +178,17 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                   className="flex flex-col items-center p-4 rounded-2xl border-2 border-teal-600 bg-teal-50/40 hover:bg-teal-50 transition-all duration-200 group text-left cursor-pointer"
                 >
                   <ShieldCheck className="w-7 h-7 text-teal-700 mb-2 group-hover:scale-110 transition-transform" />
-                  <span className="font-bold text-xs text-slate-900">Run Courier Demo</span>
-                  <span className="text-[10px] text-slate-500 mt-1 text-center font-medium">Satria A. • Scooter Plate</span>
+                  <span className="font-bold text-xs text-slate-900">Demo Kurir/Driver</span>
+                  <span className="text-[10px] text-slate-500 mt-1 text-center font-medium">Satria A. • Motor PCX Hitam</span>
                   <span className="mt-3 flex items-center font-mono font-semibold text-[9px] text-teal-800 bg-teal-100 px-2 py-0.5 rounded-md">
-                    FAST ENTER <ChevronRight className="w-3 h-3 ml-0.5" />
+                    MASUK CEPAT <ChevronRight className="w-3 h-3 ml-0.5" />
                   </span>
                 </button>
               </div>
 
               <div className="flex items-center gap-3 my-6">
                 <div className="h-px bg-slate-100 flex-grow" />
-                <span className="text-[10px] uppercase font-mono tracking-wider text-slate-400 font-bold">or sign in customized</span>
+                <span className="text-[10px] uppercase font-mono tracking-wider text-slate-400 font-bold">atau daftar baru</span>
                 <div className="h-px bg-slate-100 flex-grow" />
               </div>
 
@@ -198,19 +198,19 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                 className="w-full flex items-center justify-center gap-2 py-3 border-2 border-dashed border-slate-200 hover:border-slate-400 hover:bg-slate-50 text-slate-600 font-semibold text-xs rounded-2xl transition-all duration-200 cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
-                Create Customized Account Profile
+                Buat Profil Akun Kustom Baru
               </button>
             </div>
           ) : (
             <form onSubmit={handleFormSubmit} className="space-y-4">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-bold text-slate-900">Custom Profile Setup</h2>
+                <h2 className="text-lg font-bold text-slate-900">Daftar Akun Baru</h2>
                 <button
                   type="button"
                   onClick={() => setIsRegistering(false)}
                   className="text-amber-600 hover:text-amber-700 text-xs font-semibold cursor-pointer"
                 >
-                  Back to Quick Login
+                  Kembali ke Masuk Instan
                 </button>
               </div>
 
@@ -225,7 +225,7 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                       : 'text-slate-500 hover:text-slate-700'
                   }`}
                 >
-                  I am a Customer
+                  Saya Pelanggan
                 </button>
                 <button
                   type="button"
@@ -236,20 +236,20 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                       : 'text-slate-500 hover:text-slate-700'
                   }`}
                 >
-                  I am a Courier
+                  Saya Kurir & Driver
                 </button>
               </div>
 
               {/* General inputs */}
               <div className="space-y-3">
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">Full Name</label>
+                  <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">Nama Lengkap</label>
                   <div className="relative">
                     <User className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
                     <input
                       type="text"
                       required
-                      placeholder="e.g. John Doe"
+                      placeholder="Contoh: Budi Santoso"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       className="w-full text-xs font-medium pl-10 pr-4 py-2.5 bg-slate-50/80 hover:bg-slate-50 focus:bg-white rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none transition-all"
@@ -258,13 +258,13 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">Email Address</label>
+                  <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">Alamat Email</label>
                   <div className="relative">
                     <Mail className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
                     <input
                       type="email"
                       required
-                      placeholder="e.g. john@example.com"
+                      placeholder="Contoh: budi@gmail.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="w-full text-xs font-medium pl-10 pr-4 py-2.5 bg-slate-50/80 hover:bg-slate-50 focus:bg-white rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none transition-all"
@@ -273,13 +273,13 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">Mobile Phone</label>
+                  <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">Nomor Telepon Seluler</label>
                   <div className="relative">
                     <Phone className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
                     <input
                       type="tel"
                       required
-                      placeholder="e.g. +62 812-xxxx-xxxx"
+                      placeholder="Contoh: +62 812-3456-7890"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       className="w-full text-xs font-medium pl-10 pr-4 py-2.5 bg-slate-50/80 hover:bg-slate-50 focus:bg-white rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none transition-all"
@@ -291,40 +291,40 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                 {selectedRole === 'courier' && (
                   <div className="p-4 bg-teal-50/50 rounded-2xl border border-teal-100 space-y-3">
                     <h4 className="text-xs font-bold text-teal-800 flex items-center gap-1.5">
-                      <Car className="w-4 h-4" /> Vehicle Fleet Profile
+                      <Car className="w-4 h-4" /> Kelola Profil Armada Kendaraan
                     </h4>
 
                     <div>
-                      <label className="block text-[10px] font-bold text-slate-600 uppercase tracking-wide mb-1">Vehicle Class</label>
+                      <label className="block text-[10px] font-bold text-slate-600 uppercase tracking-wide mb-1">Kelas Armada</label>
                       <select
                         value={vehicleType}
                         onChange={(e) => setVehicleType(e.target.value as VehicleType)}
                         className="w-full text-xs font-medium px-3 py-2 bg-white rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-teal-500"
                       >
-                        <option value="scooter">CusAntar Scooter (Eco/Fastest)</option>
-                        <option value="bike">CusAntar Bicycle (Short-range)</option>
-                        <option value="car">CusAntar Car (CusRide Premium)</option>
+                        <option value="scooter">Sepeda Motor Scooter (Ekonomis/Tercepat)</option>
+                        <option value="bike">Sepeda Kayu/Onthel (Jangkauan Dekat)</option>
+                        <option value="car">Mobil Penumpang (CusRide Premium)</option>
                       </select>
                     </div>
 
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <label className="block text-[10px] font-bold text-slate-600 uppercase tracking-wide mb-1">Model Name</label>
+                        <label className="block text-[10px] font-bold text-slate-600 uppercase tracking-wide mb-1">Nama Model/Merek</label>
                         <input
                           type="text"
                           required
-                          placeholder="Yamaha Aerox"
+                          placeholder="Misal: Honda Vario 160"
                           value={vehicleModel}
                           onChange={(e) => setVehicleModel(e.target.value)}
                           className="w-full text-xs font-medium px-3 py-2 bg-white rounded-xl border border-slate-200 focus:outline-none"
                         />
                       </div>
                       <div>
-                        <label className="block text-[10px] font-bold text-slate-600 uppercase tracking-wide mb-1">Plate Number</label>
+                        <label className="block text-[10px] font-bold text-slate-600 uppercase tracking-wide mb-1">Nomor Pelat (Nopol)</label>
                         <input
                           type="text"
                           required
-                          placeholder="B 1234 XYZ"
+                          placeholder="Misal: B 1234 CD"
                           value={vehiclePlate}
                           onChange={(e) => setVehiclePlate(e.target.value)}
                           className="w-full text-xs font-medium px-3 py-2 bg-white rounded-xl border border-slate-200 focus:outline-none"
@@ -343,7 +343,7 @@ export default function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                     : 'bg-teal-700 hover:bg-teal-800'
                 }`}
               >
-                Create Account & Log In ({selectedRole === 'customer' ? 'Customer' : 'Courier'})
+                Buat Akun & Masuk Sekarang ({selectedRole === 'customer' ? 'Pelanggan' : 'Kurir'})
               </button>
             </form>
           )}
