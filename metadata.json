@@ -1,0 +1,6 @@
+{
+  "name": "CusAntar",
+  "description": "Premium full-service on-demand delivery app for goods, food, and passengers, featuring direct role switching between couriers and customers with simulated real-time tracking.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
